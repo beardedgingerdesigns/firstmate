@@ -559,6 +559,58 @@ test_matrix_kimi_bordered_shell_glyph_box() {
   pass "matrix: kimi's bordered shell-glyph box reads empty through the shared owner (spawn's fourth copy retired)"
 }
 
+test_matrix_kimi_status_footer_below_box() {
+  # Kimi Code 2.0.1 draws a persistent two-row STATUS FOOTER below its
+  # composer box, so the box is no longer the bottom-most thing on screen.
+  # The cursorless staleness guard read that footer as live content under the
+  # box and answered `unknown` in EVERY state, which disabled both the Enter
+  # retry loop and delivery confirmation and left every Kimi spawn wedged with
+  # its brief pointer typed but unsubmitted. Rows below are transcribed from
+  # live captures of kimi 2.0.1 and 2.0.2 / K2.8 Preview through Herdr.
+  local box footer_model footer_context idle typed working
+  box=$' ╭────────────────────────╮\n │ >                      │\n ╰────────────────────────╯'
+  footer_model=' Never Ask  K2.8 Preview thinking: max  …/wt.GDvlrG  main [±]'
+  footer_context='                              context: 0% (0/1M)'
+  idle="$box"$'\n'"$footer_model"$'\n'"$footer_context"
+  assert_screen "kimi 2.0.1 idle on herdr" empty "$CAPS_STYLED" "$idle"
+  assert_screen "kimi 2.0.1 idle on cmux/orca" empty "$CAPS_PLAIN" "$idle"
+  assert_screen "kimi 2.0.1 idle on zellij" empty "$CAPS_STYLED_NOID" "$idle"
+  assert_screen "kimi 2.0.1 idle on tmux" empty "$CAPS_TMUX" "$idle" 1
+
+  # The unsubmitted-pointer state the spawn watchdog keys on MUST be provable:
+  # a bare "not busy yet" check cannot tell it apart from a pane mid-startup.
+  typed=$' ╭────────────────────────╮\n │ > Read the brief at    │\n ╰────────────────────────╯'
+  typed="$typed"$'\n'"$footer_model"$'\n'"$footer_context"
+  assert_screen "kimi 2.0.1 unsubmitted pointer on herdr" pending "$CAPS_STYLED" "$typed"
+  assert_screen "kimi 2.0.1 unsubmitted pointer on tmux" pending "$CAPS_TMUX" "$typed" 1
+
+  # Mid-turn Kimi empties its composer, so the watchdog's trigger is false
+  # exactly when Kimi is working - that is what keeps a stray Enter off a
+  # healthy pane.
+  working=$' ● Let me read the brief first.\n'"$idle"
+  assert_screen "kimi 2.0.1 working on herdr" empty "$CAPS_STYLED" "$working"
+
+  # INDEPENDENCE: either footer cell alone carries the verdict, so no single
+  # vendor string is load-bearing. Drive them apart one at a time.
+  local only_model only_context
+  only_model="$box"$'\n'"$footer_model"
+  only_context="$box"$'\n'"$footer_context"
+  assert_screen "kimi footer with the context cell removed" empty "$CAPS_STYLED" "$only_model"
+  assert_screen "kimi footer with the model/effort cell removed" empty "$CAPS_STYLED" "$only_context"
+
+  # THE STALENESS GUARD STILL HOLDS. Each case below is a box that genuinely
+  # is not the live composer, and must stay unknown rather than being rescued
+  # by the footer tolerance.
+  local plain_below glyph_below box_below
+  plain_below="$box"$'\nsome later transcript output'
+  assert_screen "a plain transcript row below the box is still stale" unknown "$CAPS_STYLED" "$plain_below"
+  glyph_below="$box"$'\n'"$footer_context"$'\n❯ deploy the fix'
+  assert_screen "a live bare composer below the box still owns the verdict" pending "$CAPS_STYLED" "$glyph_below"
+  box_below="$box"$'\n'"$footer_context"$'\n ╭───╮'
+  assert_screen "an incomplete box below the footer is still stale" unknown "$CAPS_STYLED" "$box_below"
+  pass "matrix: kimi 2.0.1's status footer is furniture, its typed pointer is provable, and stale boxes stay unknown"
+}
+
 test_matrix_claude_inside_zellij_ansi_dump() {
   # Real claude captured through `zellij action dump-screen --ansi`
   # (capability established by the audit): `ESC[m` `❯` U+00A0.
@@ -793,6 +845,7 @@ test_matrix_pi_separated_needs_identity
 test_matrix_opencode_leftbar_signals
 test_matrix_grok_titled_bottom_border
 test_matrix_kimi_bordered_shell_glyph_box
+test_matrix_kimi_status_footer_below_box
 test_matrix_claude_inside_zellij_ansi_dump
 test_strict_blank_row_divergence
 test_bare_wrap_region_classifies

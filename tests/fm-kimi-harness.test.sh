@@ -73,6 +73,12 @@ fake_screen() {
     pointer-typed)
       printf 'context: 0%% (0/256k)\n╭────────────────────────────────╮\n│ > Read the brief and follow it │\n│                                │\n╰────────────────────────────────╯\n'
       ;;
+    pointer-typed-v2)
+      # Kimi 2.0.1 keeps a status footer BELOW the composer box, so the
+      # unsubmitted pointer is only provable once that footer reads as
+      # furniture rather than as live content under a stale box.
+      printf '╭────────────────────────────────╮\n│ > Read the brief and follow it │\n│                                │\n╰────────────────────────────────╯\nNever Ask  K2.8 Preview thinking: max\n                 context: 0%% (0/1M)\n'
+      ;;
     delivered)
       printf '✨ Read the brief at %s and follow it exactly.\ncontext: 1%% (2k/256k)\n╭────────────────────────────────╮\n│ >                              │\n╰────────────────────────────────╯\n' "$FM_FAKE_BRIEF_REAL"
       ;;
@@ -89,7 +95,7 @@ fake_history() {
 }
 fake_cursor_y() {
   case "$state" in
-    pointer-typed) printf '3\n' ;;
+    pointer-typed|pointer-typed-v2) printf '3\n' ;;
     ready|delivered|ready-v2|delivered-v2) printf '3\n' ;;
     *) printf '1\n' ;;
   esac
@@ -162,8 +168,12 @@ case "${1:-}" in
           ready|delivered|ready-v2|delivered-v2)
             printf 'enter\n' >> "$FM_FAKE_KIMI_STRAY_ENTER_LOG"
             ;;
-          pointer-typed)
-            if [ "${FM_FAKE_KIMI_DELIVERY:-yes}" = yes ]; then
+          pointer-typed|pointer-typed-v2)
+            printf 'enter\n' >> "$FM_FAKE_KIMI_SUBMIT_ENTER_LOG"
+            submit_enters=$(wc -l < "$FM_FAKE_KIMI_SUBMIT_ENTER_LOG" | tr -d ' ')
+            if [ "$submit_enters" -le "${FM_FAKE_KIMI_SWALLOW_SUBMITS:-0}" ]; then
+              : # Kimi swallowed this Enter; the pointer stays in the composer.
+            elif [ "${FM_FAKE_KIMI_DELIVERY:-yes}" = yes ]; then
               if [ "${FM_FAKE_KIMI_SWALLOW_FIRST:-no}" = yes ] \
                  && [ ! -f "$FM_FAKE_KIMI_SWALLOWED" ]; then
                 : > "$FM_FAKE_KIMI_SWALLOWED"
@@ -256,6 +266,7 @@ EOF
   : > "$case_dir/kimi.state"
   : > "$case_dir/trust-enter.log"
   : > "$case_dir/stray-enter.log"
+  : > "$case_dir/submit-enter.log"
   : > "$case_dir/tmux-calls.log"
   printf '%s\n' "$case_dir|$home|$proj|$wt|$fakebin"
 }
@@ -280,10 +291,14 @@ run_spawn() {
     FM_FAKE_TMUX_VISIBLE_FAILS="${FM_FAKE_TMUX_VISIBLE_FAILS:-no}" \
     FM_FAKE_KIMI_SWALLOWED="$case_dir/kimi.swallowed" \
     FM_FAKE_KIMI_SWALLOW_FIRST="${FM_FAKE_KIMI_SWALLOW_FIRST:-no}" \
+    FM_FAKE_KIMI_SUBMIT_ENTER_LOG="$case_dir/submit-enter.log" \
+    FM_FAKE_KIMI_SWALLOW_SUBMITS="${FM_FAKE_KIMI_SWALLOW_SUBMITS:-0}" \
     FM_FAKE_KIMI_READY_VERSION="${FM_FAKE_KIMI_READY_VERSION:-v1}" \
     FM_FAKE_TMUX_CALL_LOG="$case_dir/tmux-calls.log" \
     FM_FAKE_BRIEF_REAL="$(cd "$home/data/$id" && pwd -P)/launch-brief.md" \
-    FM_KIMI_READY_POLLS="${FM_KIMI_READY_POLLS:-2}" FM_KIMI_DELIVERY_POLLS=2 FM_KIMI_POLL_INTERVAL=0 \
+    FM_KIMI_READY_POLLS="${FM_KIMI_READY_POLLS:-2}" \
+    FM_KIMI_DELIVERY_POLLS="${FM_KIMI_DELIVERY_POLLS:-2}" FM_KIMI_POLL_INTERVAL=0 \
+    FM_KIMI_SUBMIT_SETTLE="${FM_KIMI_SUBMIT_SETTLE:-0}" \
     PATH="$fakebin:$BASE_PATH" \
     "$SPAWN" "$id" "$proj" --harness kimi --mode no-mistakes --yolo off "$@" 2>&1
 }
@@ -1150,7 +1165,62 @@ test_kimi_2_0_1_ready_signal_without_visible_banner() {
   pass "fm-spawn: kimi 2.0.1 reaches ready when the banner scrolls off the visible viewport"
 }
 
+test_kimi_unsubmitted_startup_pointer_is_resubmitted() {
+  local id rec out rc submits pointers
+  id=kimi-v2-resubmit-z4
+  rec=$(make_spawn_case v2-resubmit "$id")
+  read_spawn_record "$rec"
+  rc=0
+  # Kimi 2.0.1 swallows a startup Enter, leaving the brief pointer typed but
+  # unsubmitted. Swallow more Enters than the submit core's own retry budget
+  # so ONLY the delivery watchdog can recover this spawn.
+  out=$(FM_FAKE_KIMI_READY_VERSION=v2 FM_FAKE_KIMI_SWALLOW_SUBMITS=4     FM_KIMI_DELIVERY_POLLS=6 run_spawn     "$CASE_DIR" "$HOME_DIR" "$PROJ_DIR" "$WT_DIR" "$FAKEBIN_DIR" "$id") || rc=$?
+  expect_code 0 "$rc" "the watchdog should recover a swallowed startup submit"
+  assert_contains "$out" "spawned $id harness=kimi" "the recovered kimi spawn did not report success"
+  # The brief is never retyped: a second literal send would duplicate the
+  # pointer already sitting in the composer.
+  pointers=$(grep -c "Read the brief at " "$CASE_DIR/pointer.log")
+  [ "$pointers" = 1 ] || fail "the watchdog retyped the brief pointer ($pointers sends)"
+  submits=$(wc -l < "$CASE_DIR/submit-enter.log" | tr -d ' ')
+  [ "$submits" -gt 4 ] || fail "the watchdog never re-issued the submit keystroke ($submits Enters)"
+  pass "fm-spawn: a kimi startup pointer left unsubmitted is re-submitted, never retyped"
+}
+
+test_kimi_resubmit_is_bounded_and_fails_loudly() {
+  local id rec out rc submits
+  id=kimi-v2-bounded-z4
+  rec=$(make_spawn_case v2-bounded "$id")
+  read_spawn_record "$rec"
+  rc=0
+  # A pane that swallows every Enter must not be hammered forever: the
+  # watchdog spends a bounded budget and then the spawn fails loudly.
+  out=$(FM_FAKE_KIMI_READY_VERSION=v2 FM_FAKE_KIMI_SWALLOW_SUBMITS=999     FM_KIMI_DELIVERY_POLLS=12 FM_KIMI_DELIVERY_RESUBMITS=2 run_spawn     "$CASE_DIR" "$HOME_DIR" "$PROJ_DIR" "$WT_DIR" "$FAKEBIN_DIR" "$id") || rc=$?
+  [ "$rc" -ne 0 ] || fail "a kimi pane that never accepts the submit should fail the spawn"
+  assert_contains "$out" "kimi brief pointer delivery was not confirmed"     "a bounded re-submit failure lacked a loud diagnostic"
+  submits=$(wc -l < "$CASE_DIR/submit-enter.log" | tr -d ' ')
+  [ "$submits" -le 6 ] || fail "the watchdog's re-submit budget was not bounded ($submits Enters)"
+  pass "fm-spawn: the kimi re-submit budget is bounded and an unrecovered pointer still fails loudly"
+}
+
+test_kimi_working_pane_collects_no_stray_enter() {
+  local id rec out rc
+  id=kimi-v2-nostray-z4
+  rec=$(make_spawn_case v2-nostray "$id")
+  read_spawn_record "$rec"
+  rc=0
+  # A Kimi that accepted its pointer empties its composer, so the watchdog's
+  # trigger is false and a healthy worker never receives an empty prompt.
+  out=$(FM_FAKE_KIMI_READY_VERSION=v2 FM_KIMI_DELIVERY_POLLS=6 run_spawn     "$CASE_DIR" "$HOME_DIR" "$PROJ_DIR" "$WT_DIR" "$FAKEBIN_DIR" "$id") || rc=$?
+  expect_code 0 "$rc" "a healthy kimi 2.0.1 spawn should succeed"
+  [ ! -s "$CASE_DIR/stray-enter.log" ] \
+    || fail "the watchdog sent a stray Enter to a kimi that had already started its turn"
+  pass "fm-spawn: a kimi that is already processing the brief receives no stray submit"
+}
+
 test_kimi_2_0_1_ready_signal_without_visible_banner
+test_kimi_unsubmitted_startup_pointer_is_resubmitted
+test_kimi_resubmit_is_bounded_and_fails_loudly
+test_kimi_working_pane_collects_no_stray_enter
 test_kimi_hook_install_is_surgical_idempotent_and_removable
 test_kimi_hook_remove_preserves_owned_newline_boundary
 test_kimi_hook_fails_closed_on_missing_malformed_or_partial_config

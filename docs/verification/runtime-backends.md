@@ -776,6 +776,69 @@ tests/fm-composer-codex-idle-live-e2e.test.sh
 The verification machine runs its fleet on Herdr and has no tmux installed, so on 2026-09-15 that guard reported `skip: live: tmux absent` there, and the Herdr capture above is this entry's live evidence.
 The guard also notes whether the starfield and the placeholder were actually drawn during its read, because codex need not animate them under every model or mode; a refresh on a tmux host should record that note beside the verdict rather than assume the starfield was exercised.
 
+### 2026-09-20 Kimi 2.0.1/2.0.2 startup submit and the status footer below its composer
+
+Verified on 2026-09-20 on macOS arm64 (Darwin 24.6.0) against kimi 2.0.1 and, after a mid-session self-update, kimi 2.0.2 (model K2.8 Preview), launched as `kimi --auto` in an isolated Herdr 0.8.0 lab session through `bin/fm-herdr-lab.sh`, with a real foreground viewer attached for a 40x120 pane.
+Two independent defects each left a freshly launched Kimi worker holding its brief pointer in the composer, typed but never submitted.
+
+The first is a composer-shape gap. Kimi draws a persistent two-row status footer BELOW its composer box:
+
+```text
+ ╭─────────────────────────────────────────────╮
+ │ >                                           │
+ ╰─────────────────────────────────────────────╯
+ Never Ask  K2.8 Preview thinking: max  …/wt.GDvlrG  main [±]
+                                        context: 0% (0/1M)
+```
+
+`_fm_composer_select_cursorless` treated any non-blank, non-edge row below a box as proof the box was stale, so the footer made every CURSORLESS read of a Kimi pane answer `unknown`.
+The cursor-anchored tmux path selects the box containing the cursor and never reaches that check, so the defect was specific to the cursorless backends (herdr, cmux, orca, zellij).
+Read-only `herdr pane read <pane> --format ansi` captures of one live pane, fed to the shared classifier with Herdr's exact descriptor (`styled=1`, `cursor=0`, `identity=1`), before the fix (`bin/fm-composer-lib.sh` at f19161da) and after it:
+
+```text
+                 before   after
+idle composer    unknown  empty
+typed pointer    unknown  pending
+mid-turn         unknown  empty
+```
+
+An `unknown` composer is what silently disabled both halves of the delivery path: `fm_backend_herdr_send_text_submit` retries Enter only on a proven `pending` and returns immediately on `unknown`, so the pointer got exactly one Enter and no retry, and `kimi_delivery_is_confirmed` requires a composer read of `empty`, which could never be satisfied.
+
+The second is a timing race, and it is the root cause of the swallowed keystroke itself.
+Kimi ignores an Enter sent with no gap after the literal pointer.
+Measured on fresh real panes, one trial per value, each launched and taken through the readiness gate before the pointer was typed:
+
+```text
+settle=0    pointer left unsubmitted (2 of 2 trials, both versions)
+settle=0.3  turn started within 1.0s
+settle=1.0  turn started within 1.0s
+settle=2.0  turn started within 1.0s
+```
+
+`FM_KIMI_SUBMIT_SETTLE` defaulted to `0`, so every Kimi spawn raced.
+The default is now `0.6`, and `kimi_wait_for_delivery` additionally re-issues ONLY the Enter, within a bounded budget, when the composer proves the pointer is still pending and the backend busy state is not busy.
+
+End-to-end against the patched path on real panes: three consecutive spawns read `empty` at readiness, reported submit verdict `empty`, confirmed delivery, and Kimi read the brief.
+With the settle forced back to `0` so the startup Enter was swallowed, the submit verdict became `pending` (the restored retry budget) and the delivery watchdog recovered both trials.
+A healthy pane collected no stray Enter: the pointer appeared exactly once in the transcript and the composer stayed `empty`.
+
+`test_matrix_kimi_status_footer_below_box` in `tests/fm-composer-lib.test.sh` carries the footer shape, the provable unsubmitted-pointer state, the independence of the two footer cells (either alone carries the verdict), and the staleness negatives that must stay `unknown`.
+`test_kimi_unsubmitted_startup_pointer_is_resubmitted`, `test_kimi_resubmit_is_bounded_and_fails_loudly`, and `test_kimi_working_pane_collects_no_stray_enter` in `tests/fm-kimi-harness.test.sh` pin the watchdog's trigger, its bound, and its silence on a working pane.
+
+The live guard that refreshes this entry launches the installed Kimi in an isolated Herdr lab, requires an idle composer to read `empty`, requires a typed pointer to read `pending`, and requires the submitted pointer to start a turn that reaches the brief, naming kimi and `kimi --version` on failure:
+
+```sh
+FM_KIMI_STARTUP_SUBMIT_LIVE=1 tests/fm-kimi-startup-submit-live-e2e.test.sh
+```
+
+It submits a prompt, so it is opt-in.
+Run it after every Kimi or Herdr upgrade.
+On 2026-09-20 it reported:
+
+```text
+ok - live Kimi startup submit: Kimi (2.0.2) on herdr 0.8.0 reads empty idle, proves a pending unsubmitted pointer, and starts the brief in isolated session fm-lab-kimi-startup-sub-13043-19765
+```
+
 ## Steering-inbox doorbell
 
 The steering channel's one behavioral assumption - a real worker agent follows the constant self-describing doorbell line (list the inbox, read and act on its records in numeric order, then `mv` each into `handled/`) - was verified on 2026-08-23 against every installed verified harness, on tmux 3.6a, macOS arm64, on an isolated private socket, driving the REAL `bin/fm-send.sh` end to end (durable record plus doorbell, with one mid-wait re-ring playing the watcher's role).

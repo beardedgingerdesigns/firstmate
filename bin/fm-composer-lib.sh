@@ -499,6 +499,22 @@ FM_COMPOSER_MODE_HINT_RE_DEFAULT='^[[:space:]]*(⏵|⏸)'
 # a middle dot. It is consulted only as the boundary BELOW a bare composer,
 # never on the composer row itself.
 FM_COMPOSER_OMP_STATUS_RE_DEFAULT='^[[:space:]]*(π|󰵗)[[:space:]]+·[[:space:]]|^[[:space:]]*'"$FM_OMP_SPINNER_FRAMES_RE"'[[:space:]]+[0-9]+[smh]([[:space:]]|$)|[[:space:]]·[[:space:]].*[0-9]+(\.[0-9]+)?%/[0-9]+K'
+# A harness may draw a persistent STATUS FOOTER directly below its bordered
+# composer, so the composer box is no longer the bottom-most thing on screen.
+# Kimi Code does exactly this (verified live through Herdr on kimi 2.0.1 and
+# 2.0.2, K2.8 Preview): a permission-mode, model, effort, path, and git row, then a
+# right-aligned context-usage row, both below the closing bottom border.
+# Without this rule the cursorless selection below reads that footer as live
+# content underneath the box, judges the box stale, and answers `unknown` in
+# EVERY state - empty, typed, and mid-turn alike - which is what silently
+# disabled both the Enter retry loop and delivery confirmation for every Kimi
+# spawn.
+# Two INDEPENDENT cells are matched and either one alone carries the verdict,
+# so no single vendor string is load-bearing: the model/effort cell
+# (`thinking: max`) and the context-usage cell (`context: 0% (0/1M)`). A row
+# below the box is never composer input, so these patterns cannot capture
+# anything a human typed.
+FM_COMPOSER_BOX_FOOTER_RE_DEFAULT='[[:space:]]thinking:[[:space:]]|context:[[:space:]]*[0-9]+(\.[0-9]+)?%'
 # Braille-pattern cells (U+2800..U+28FF) are animation furniture: codex-cli
 # 0.154.0 draws an idle "starfield" of them on the row above its `›` prompt
 # row, on the `›` row itself after the dim `Ask Codex to do anything`
@@ -1190,6 +1206,42 @@ _fm_composer_row_is_omp_status() {  # <trimmed-row>
   fm_composer_idle_matches "$1" "${FM_COMPOSER_OMP_STATUS_RE:-$FM_COMPOSER_OMP_STATUS_RE_DEFAULT}" sensitive
 }
 
+# _fm_composer_row_is_box_footer: 0 when the row carries one of the status
+# cells a harness draws below its bordered composer
+# (FM_COMPOSER_BOX_FOOTER_RE_DEFAULT above). Consulted only for rows BELOW a
+# complete box, never on a composer row.
+_fm_composer_row_is_box_footer() {  # <trimmed-row>
+  fm_composer_idle_matches "$1" "${FM_COMPOSER_BOX_FOOTER_RE:-$FM_COMPOSER_BOX_FOOTER_RE_DEFAULT}" sensitive
+}
+
+# _fm_composer_box_footer_region_ok: 0 when everything below <box-bottom> is
+# this harness's own status footer rather than evidence the box is stale.
+# The staleness guard it relaxes exists because a composer with live content
+# under it is a scrolled-away box, so the structural half stays strict: ANY row
+# below that carries a box-drawing edge or a prompt glyph - the shapes a real
+# composer below would draw - still proves staleness and refuses here. A plain
+# transcript row below the box also still refuses, because at least one row
+# must positively match a status cell.
+_fm_composer_box_footer_region_ok() {  # <plain-screen> <box-bottom-row>
+  local plain=$1 row=$2 total raw trimmed glyph seen=0
+  total=$(printf '%s\n' "$plain" | wc -l | tr -d '[:space:]')
+  case "$total" in ''|*[!0-9]*) return 1 ;; esac
+  row=$((row + 1))
+  while [ "$row" -lt "$total" ]; do
+    raw=$(_fm_composer_screen_row "$row" "$plain")
+    trimmed=$raw
+    fm_composer_normalize_trim_var trimmed
+    if [ -n "$trimmed" ]; then
+      fm_composer_row_has_edge "$trimmed" && return 1
+      fm_composer_leading_prompt_glyph_var glyph "$trimmed" && return 1
+      _fm_composer_row_is_box_footer "$trimmed" || return 1
+      seen=1
+    fi
+    row=$((row + 1))
+  done
+  [ "$seen" = 1 ]
+}
+
 # _fm_composer_row_is_braille_furniture: 0 when the row is non-blank and its
 # non-whitespace content is entirely braille cells (fm_composer_strip_braille
 # above) - an animation row that never counts as typed content and bounds a
@@ -1509,7 +1561,9 @@ _fm_composer_select_cursorless() {
     raw=$(_fm_composer_screen_row "$next" "$plain")
     trimmed=$raw
     fm_composer_normalize_trim_var trimmed
-    if [ -n "$trimmed" ] && ! fm_composer_row_has_edge "$trimmed"; then
+    if [ -n "$trimmed" ] && ! fm_composer_row_has_edge "$trimmed" \
+       && ! { [ "$FM_COMPOSER_SELECTED_KIND" = box ] \
+              && _fm_composer_box_footer_region_ok "$plain" "$boundary"; }; then
       FM_COMPOSER_SELECTED_KIND=
       return 1
     fi

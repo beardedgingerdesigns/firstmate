@@ -1,6 +1,6 @@
 # Kimi Code
 
-Verified on 2026-09-19 with Kimi Code CLI 2.0.1.
+Verified on 2026-09-20 with Kimi Code CLI 2.0.1 and 2.0.2; both behave identically on every fact below.
 
 ## Operating facts
 
@@ -15,10 +15,10 @@ Verified on 2026-09-19 with Kimi Code CLI 2.0.1.
 | Skill invocation | `/<skill>`, for example `/no-mistakes`; Firstmate skills are discovered. |
 | Autonomy | `--auto` is the `Never Ask` tier; `-y` and `--yolo` now select the distinct, weaker `Ask When Needed` tier and are not used. |
 | Trust dialog | A fresh worktree shows `Trust this folder?` with `Trust this folder` pre-selected; spawn reads the visible pane, recognizes the complete dialog (its title, both navigation-hint tokens `↑↓ navigate` and `Enter select` - matched separately so a hint wrapped in a narrow pane still counts - the selected `❯ Trust this folder`, and `Don't trust`), sends Enter on every poll the complete dialog is still there, verifies that a later visible-pane capture no longer contains it, and then continues the ordinary readiness gate. Trust is never pre-registered in `config.toml`; the dialog is answered live. |
-| Slash submission | One Enter submits, with no popup swallow or settle hazard. |
+| Submission | One Enter submits and no completion popup swallows it, but the composer needs a settle after the text lands: an Enter sent with no gap is ignored at startup, leaving the text typed and unsubmitted. Measured on fresh panes, a zero settle never submitted while 0.3s and above always did, so `bin/fm-spawn.sh` settles before the pointer's Enter. |
 | Environment marker | None; identity comes from process ancestry command name `kimi`, which `../../../bin/fm-harness.sh` keeps a retained foreign marker from overriding. |
 | Banner | 2.0.1 renders a bordered startup box containing `Welcome to Kimi Code!`, `Send /help for help information.`, directory, session, model, and version lines; on a 24-row pane the `Welcome` line scrolls off the visible viewport while the `/help` line stays visible. |
-| Composer | Bordered box with a bare `>` prompt glyph and no observed ghost or placeholder text. |
+| Composer | Bordered box with a bare `>` prompt glyph and no observed ghost or placeholder text. The status bar below it sits outside the box, so a cursorless backend can only read this composer because `bin/fm-composer-lib.sh` treats that footer as furniture instead of as live content proving the box stale. |
 | Status bar | Below the composer: autonomy mode (`Never Ask`), model name, thinking effort, and `context: N% (used/max)`. |
 | Effort | `kimi provider list --json` exposes per-model `supportEfforts` values `low`, `high`, and `max` plus a `defaultEffort`; the launch flag and mapping remain unverified, so spawn records and omits requested effort per `references/common/model-and-effort.md`. |
 
@@ -32,6 +32,8 @@ The path must be absolute because the instructions live outside the task worktre
 
 Sending before readiness was reproduced as a silent drop with zero exit status, an empty composer, `context: 0%`, no echoed user message, and a healthy-looking idle pane.
 The startup input-readiness window is the established cause; the banner is not.
+Reaching the ready verdict is necessary but not sufficient: the composer accepts the pointer text there and still ignores an Enter that arrives with no gap behind it, which is why the settle above exists.
+Because a swallowed startup Enter leaves the pointer sitting in the composer rather than failing, delivery also re-issues only that keystroke, within a bounded budget, while the composer proves the pointer is still pending and the backend reports the pane is not busy; a Kimi that has started its turn has an empty composer, so a healthy worker is never sent a stray Enter and the brief is never retyped.
 An early Enter can expand the composer to multiple content rows, leaving pointer text on the first row and the cursor on an empty later row.
 The shared tmux reader therefore locates the complete bordered composer and treats real text on any content row as positive evidence that submission remains pending.
 No rendering signal proves Kimi will accept input during this window, so delivery retries Enter through the shared submit core and retains the postcondition verification rather than relaxing readiness.

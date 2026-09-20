@@ -3674,11 +3674,35 @@ kimi_delivery_is_confirmed() { # <plain-pane-capture>
   return 1
 }
 
+# kimi_composer_is_pending: the classifier PROVED typed text is sitting in the
+# composer. Kimi empties its composer the moment it starts a turn, so during
+# the delivery wait this is exactly the unsubmitted-pointer state - text
+# present, no processing started - and never a pane that is already working.
+kimi_composer_is_pending() {
+  [ "$(fm_backend_composer_state "$BACKEND" "$T" "$W" 2>/dev/null)" = pending ]
+}
+
+# kimi_wait_for_delivery: poll for confirmed delivery and, while waiting,
+# re-issue ONLY the submit keystroke when the pointer is proven to be sitting
+# unsubmitted. The brief is never retyped: the text is already in the composer
+# and a second literal send would duplicate it.
+# Two independent signals must agree before an Enter is sent - a proven pending
+# composer AND a backend busy-state that is not already busy - so a Kimi that
+# is working, or whose composer cannot be read at all, receives nothing. The
+# loop stops on the first confirmed delivery, so a working Kimi never collects
+# a stray Enter or an empty prompt.
 kimi_wait_for_delivery() {
   local pane i=0 max=${FM_KIMI_DELIVERY_POLLS:-40} interval=${FM_KIMI_POLL_INTERVAL:-0.5}
+  local resubmits=0 max_resubmits=${FM_KIMI_DELIVERY_RESUBMITS:-3}
+  case "$max_resubmits" in ''|*[!0-9]*) max_resubmits=3 ;; esac
   while [ "$i" -lt "$max" ]; do
     pane=$(kimi_capture)
     kimi_delivery_is_confirmed "$pane" && return 0
+    if [ "$resubmits" -lt "$max_resubmits" ] && kimi_composer_is_pending \
+      && [ "$(fm_backend_busy_state "$BACKEND" "$T" 2>/dev/null)" != busy ]; then
+      spawn_send_key "$T" Enter || true
+      resubmits=$((resubmits + 1))
+    fi
     i=$((i + 1))
     [ "$i" -ge "$max" ] || sleep "$interval"
   done
@@ -4884,7 +4908,12 @@ if [ "$HARNESS" = kimi ]; then
   KIMI_POINTER="Read the brief at $BRIEF_REAL and follow it exactly."
   KIMI_SUBMIT_RETRIES=${FM_KIMI_SUBMIT_RETRIES:-3}
   KIMI_SUBMIT_SLEEP=${FM_KIMI_SUBMIT_SLEEP:-${FM_KIMI_POLL_INTERVAL:-0.5}}
-  KIMI_SUBMIT_SETTLE=${FM_KIMI_SUBMIT_SETTLE:-0}
+  # Kimi 2.0.1 and 2.0.2 swallow an Enter sent with no gap after the literal pointer:
+  # measured on real panes, settle=0 left the pointer unsubmitted every time
+  # while every settle from 0.3s up submitted on the first Enter. This is the
+  # root cause of the startup wedge; kimi_wait_for_delivery's re-submit below
+  # is the safety net, not the fix.
+  KIMI_SUBMIT_SETTLE=${FM_KIMI_SUBMIT_SETTLE:-0.6}
   if ! KIMI_SUBMIT_VERDICT=$(fm_backend_send_text_submit \
     "$BACKEND" "$T" "$KIMI_POINTER" "$KIMI_SUBMIT_RETRIES" \
     "$KIMI_SUBMIT_SLEEP" "$KIMI_SUBMIT_SETTLE" "$W"); then

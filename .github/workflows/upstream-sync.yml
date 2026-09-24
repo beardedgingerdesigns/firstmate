@@ -4,19 +4,21 @@ name: Upstream sync
 # one bot-owned PR, so the fork tracks upstream by merging, never rebasing,
 # and fork main is never force-pushed. The job-level repository guard keeps
 # the schedule inert in every other repository, including upstream itself.
-# The sync PR is opened and merged with GITHUB_TOKEN, which never triggers
-# other workflows, so this fork's CI intentionally never runs on it; the
-# merge gate is upstream's own check runs on the synced commit.
+# All writes authenticate as the UPSTREAM_SYNC_TOKEN repository secret (a
+# fine-grained token scoped to this repository with Contents, Pull requests,
+# and Workflows write): GITHUB_TOKEN cannot push commits that touch
+# .github/workflows/* and this fork does not let Actions open PRs. A welcome
+# side effect is that the fork's own CI runs on the sync PR; the merge gate
+# stays upstream's own check runs on the synced commit.
 
 on:
   schedule:
     - cron: '42 5 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write        # push the bot-owned sync branch; the merge writes main
-  pull-requests: write   # open, refresh, and merge the sync PR
-  issues: write          # gh pr comment posts through the issue-comments endpoint
+# GITHUB_TOKEN gets no scopes: the checkout clone/push and every gh call
+# authenticate as UPSTREAM_SYNC_TOKEN instead.
+permissions: {}
 
 # Serialize scheduled and manual runs so two syncs never race the branch.
 concurrency:
@@ -30,12 +32,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Require the UPSTREAM_SYNC_TOKEN secret
+        env:
+          UPSTREAM_SYNC_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN }}
+        run: |
+          if [ -z "$UPSTREAM_SYNC_TOKEN" ]; then
+            echo "::error::repository secret UPSTREAM_SYNC_TOKEN is not set; store a fine-grained personal access token scoped to this repository with Contents, Pull requests, and Workflows write under that name"
+            exit 1
+          fi
       - uses: actions/checkout@v6
         with:
+          token: ${{ secrets.UPSTREAM_SYNC_TOKEN }}
           fetch-depth: 0
       - name: Open or refresh the sync PR and merge it when green
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN }}
           # gh prefers a fork's parent (and any remote named "upstream") as
           # the default PR target; pin every gh call to this repository so
           # the sync PR is always fork-internal, never opened to kunchenguid.
@@ -60,7 +71,28 @@ jobs:
           echo "upstream/main is at ${upstream_sha} with commits not yet in origin/main:"
           git log --oneline origin/main..upstream/main
 
-          # The sync branch is bot-owned, so force-updating only it is safe.
+          # Force-update the sync branch only while the bot still owns it:
+          # when its remote tip is absent or still an ancestor of upstream
+          # main, updating it discards nothing. Any other tip is a manual
+          # conflict resolution; force-updating would wipe that work, so
+          # leave the branch alone and report on the open PR instead.
+          sync_tip=$(git ls-remote origin "refs/heads/${SYNC_BRANCH}" | cut -f1)
+          if [ -z "$sync_tip" ]; then
+            echo "no remote ${SYNC_BRANCH} branch yet; creating it at upstream main"
+          else
+            git fetch -q origin "refs/heads/${SYNC_BRANCH}"
+            if ! git merge-base --is-ancestor "$sync_tip" upstream/main; then
+              msg="Upstream sync skipped: ${SYNC_BRANCH} has manual commits (tip ${sync_tip}) not contained in ${UPSTREAM_REPO} main, so the branch was left alone. To resolve, merge ${UPSTREAM_REPO} main into fork main locally and push main; do not commit to ${SYNC_BRANCH}."
+              pr_url=$(gh pr list --state open --base main --head "$SYNC_BRANCH" \
+                --limit 1 --json url --jq '.[0].url // empty')
+              if [ -n "$pr_url" ]; then
+                gh pr comment "$pr_url" --body "$msg"
+              fi
+              printf '%s\n' "$msg"
+              exit 0
+            fi
+            echo "${SYNC_BRANCH} tip ${sync_tip} is still upstream history; updating it"
+          fi
           git push --force origin "upstream/main:refs/heads/${SYNC_BRANCH}"
 
           body_file=$(mktemp)
@@ -124,6 +156,9 @@ jobs:
 
           # The fork sets allow_auto_merge=false, so merge directly here,
           # always with a merge commit (never squash or rebase) so fork main
-          # keeps its full history and is never rewritten.
-          gh pr merge "$pr_url" --merge
+          # keeps its full history and is never rewritten. Pin the merge to
+          # the exact upstream head whose check runs passed above, so a
+          # branch that moved since the push is refused instead of merged
+          # unchecked.
+          gh pr merge "$pr_url" --merge --match-head-commit "$upstream_sha"
           echo "merged ${pr_url} with a merge commit"

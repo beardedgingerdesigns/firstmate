@@ -294,6 +294,38 @@ EOF
   pass "fm-brief.sh: a registered work branch is the PR base the worker is told"
 }
 
+# A valid branch name may carry shell syntax, and an empty base= is a registry
+# mistake: the emitted command must pass the literal name, and the empty token
+# must refuse rather than silently target the forge default.
+test_registered_base_is_shell_safe_and_never_empty() {
+  local home brief cmd got status
+  home="$TMP_ROOT/pr-base-quote-home"
+  mkdir -p "$home/data"
+  # shellcheck disable=SC2016  # the dollar sign is part of the branch name
+  printf -- '- dollarproj [direct-PR base=release/$USER] - fixture (added 2026-09-24)\n- emptyproj [direct-PR base=] - fixture (added 2026-09-24)\n' \
+    > "$home/data/projects.md"
+  for mode in direct-PR no-mistakes; do
+    brief="$home/data/brief-base-dollar-$mode/brief.md"
+    FM_HOME="$home" "$ROOT/bin/fm-brief.sh" "brief-base-dollar-$mode" dollarproj --mode "$mode" >/dev/null 2>&1 \
+      || fail "$mode: brief on a dollar-sign base should scaffold"
+    # shellcheck disable=SC2016  # backticks are the brief's Markdown code spans
+    case "$mode" in
+      direct-PR) cmd=$(grep '^PR base:' "$brief" | sed -n 's/.*open the PR with `\([^`]*\)`.*/\1/p') ;;
+      no-mistakes) cmd=$(grep '^PR base:' "$brief" | sed -n 's/.*start the run with `\([^`]*\)`.*/\1/p') ;;
+    esac
+    [ -n "$cmd" ] || fail "$mode: brief emitted no PR base command"
+    # Run the emitted command against stubs that print their last argument.
+    # shellcheck disable=SC2329  # the stubs are invoked through eval
+    got=$(gh-axi() { printf '%s\n' "${@: -1}"; }; no-mistakes() { printf '%s\n' "${@: -1}"; }; USER=fixture-user; eval "$cmd")
+    # shellcheck disable=SC2016
+    [ "$got" = 'release/$USER' ] || fail "$mode: emitted command expanded the branch name (got '$got' from: $cmd)"
+  done
+  FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-base-empty emptyproj --mode direct-PR >/dev/null 2>&1
+  status=$?
+  [ "$status" -ne 0 ] || fail "a brief on an empty registered base scaffolded as if no base were registered"
+  pass "fm-brief.sh: the PR base command keeps a literal branch name, and an empty base refuses"
+}
+
 # yolo is firstmate's merge authority and never reaches the worker, and a scout
 # or charter carries no delivery contract. Each must refuse rather than accept and
 # discard the flag, which would look recorded but change nothing.
@@ -1119,6 +1151,7 @@ test_ship_modes_generate_clean_briefs
 test_ship_mode_is_required_and_closed_set
 test_ship_mode_is_explicit_not_registry
 test_registered_base_names_the_pr_base
+test_registered_base_is_shell_safe_and_never_empty
 test_delivery_flags_are_refused_where_they_do_not_apply
 test_faster_paths_use_configured_authority_without_stacked_review
 test_no_mistakes_dod_wording

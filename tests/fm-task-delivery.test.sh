@@ -398,6 +398,53 @@ STUB
   pass "fm-promote: a promoted worker receives the same mode-specific delivery contract a briefed one does"
 }
 
+# A scout on a project registered with a work branch other than the forge default
+# must be promoted onto that branch: the clean base and the PR base both come
+# from the registry, exactly as an ordinary ship brief's Definition of done does.
+test_promotion_targets_the_registered_base() {
+  local home mode id meta out brief_dod delivered_dod file
+  home="$TMP_ROOT/promote-base/home"
+  mkdir -p "$home/state" "$home/data"
+  printf -- '- devproj [direct-PR base=dev] - fixture (added 2026-09-24)\n' > "$home/data/projects.md"
+  for mode in direct-PR no-mistakes; do
+    id="promote-base-$(printf '%s' "$mode" | tr '[:upper:]' '[:lower:]')"
+    meta="$home/state/$id.meta"
+    printf 'window=fm-%s\nkind=scout\nworktree=/tmp/wt\nproject=/fixture/projects/devproj\n' "$id" > "$meta"
+    FM_HOME="$home" "$BRIEF" "$id" devproj --scout >/dev/null 2>&1 \
+      || fail "$mode: scout brief generation should succeed"
+    fill_brief_subsections "$home/data/$id/brief.md" \
+      "Ship the fix on the work branch." "Target the registered work branch."
+    out=$(FM_HOME="$home" FM_STATE_OVERRIDE="$home/state" "$PROMOTE" "$id" --mode "$mode" --yolo off 2>&1) \
+      || fail "$mode: promotion on a registered base should succeed: $out"
+    for file in "$home/data/$id/ship-instructions.md" "$home/data/$id/brief.md"; do
+      # shellcheck disable=SC2016  # backticks are the brief's Markdown code spans
+      assert_grep 'Return to a clean base on `origin/dev`' "$file" \
+        "$mode: promoted worker was not returned to the registered work branch ($file)"
+      assert_no_grep 'clean default-branch base' "$file" \
+        "$mode: promoted worker was still told to return to the default branch ($file)"
+      assert_grep 'preserve the existing `fm/'"$id"'` branch' "$file" \
+        "$mode: promotion lost its preserve-work rule for relaunch ($file)"
+    done
+    case "$mode" in
+      direct-PR) assert_grep 'gh-axi pr create --base dev' "$home/data/$id/ship-instructions.md" \
+        "direct-PR: promoted worker was not told the registered PR base" ;;
+      no-mistakes) assert_grep 'no-mistakes axi run --base-branch dev' "$home/data/$id/ship-instructions.md" \
+        "no-mistakes: promoted worker was not told the registered PR base" ;;
+    esac
+
+    rm "$home/data/$id/brief.md"
+    FM_HOME="$home" "$BRIEF" "$id" devproj --mode "$mode" >/dev/null 2>&1 \
+      || fail "$mode: ordinary ship brief generation should succeed"
+    brief_dod="$TMP_ROOT/promote-base/brief-dod-$id"
+    delivered_dod="$TMP_ROOT/promote-base/delivered-dod-$id"
+    awk '/^# Definition of done$/ { emit=1 } emit' "$home/data/$id/brief.md" > "$brief_dod"
+    awk '/^# Definition of done$/ { emit=1 } emit' "$home/data/$id/ship-instructions.md" > "$delivered_dod"
+    cmp -s "$brief_dod" "$delivered_dod" \
+      || fail "$mode: promotion and ordinary brief generation disagree on a registered base"
+  done
+  pass "fm-promote: a promoted worker returns to and targets the project's registered work branch"
+}
+
 # The registry parser survives for the mechanical consumers only. It accepts the
 # conditional policy, maps it to its most rigorous leg for them, and exposes the
 # raw annotation for the one caller that must tell a policy from a flat mode.
@@ -443,6 +490,7 @@ test_project_mode_reads_the_registered_base() {
 - onlybase [base=release/1.x] - fixture (added 2026-09-24)
 - nobase [local-only] - fixture (added 2026-09-24)
 - badbase [no-mistakes base=bad..name] - fixture (added 2026-09-24)
+- emptybase [direct-PR base=] - fixture (added 2026-09-24)
 EOF
   out=$(FM_HOME="$home" "$PROJECT_MODE" --base devproj)
   [ "$out" = dev ] || fail "--base did not read the registered base (got '$out')"
@@ -461,7 +509,11 @@ EOF
   status=$?
   [ "$status" -ne 0 ] || fail "an invalid base name was accepted"
   assert_contains "$out" "not a valid branch name" "an invalid base did not explain itself"
-  pass "fm-project-mode: --base reads the registered work branch and falls back to nothing when absent"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" --base emptybase 2>&1)
+  status=$?
+  [ "$status" -ne 0 ] || fail "an empty base= was accepted as no base (got '$out')"
+  assert_contains "$out" "empty base=" "an empty base did not explain itself"
+  pass "fm-project-mode: --base reads the registered work branch, falls back to nothing when absent, and refuses an empty one"
 }
 
 # Spawn and promotion refuse leftover Task-subsection placeholders through the
@@ -925,5 +977,6 @@ test_promote_refuses_a_symlinked_task_record
 test_promotion_delivers_the_real_definition_of_done
 test_project_mode_maps_the_conditional_policy
 test_project_mode_reads_the_registered_base
+test_promotion_targets_the_registered_base
 test_spawn_and_promote_require_filled_task_subsections
 echo "# all fm-task-delivery tests passed"

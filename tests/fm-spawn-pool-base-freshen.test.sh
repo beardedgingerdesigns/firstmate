@@ -250,7 +250,17 @@ test_registered_base_cuts_the_task_branch_from_it() {
   status=$?
   [ "$status" -ne 0 ] || fail "spawn launched although origin has no registered base branch"
   assert_contains "$out" "origin/nope" "the refusal did not name the missing registered base"
-  pass "a registered work branch is the base a task is cut from, and a missing one refuses"
+
+  # A present but empty base= refuses rather than silently restoring the default.
+  id='pool-registered-base-empty-r21'
+  fm_test_spawn_brief "$HOME_DIR" "$id"
+  printf -- '- %s [no-mistakes base=] - fixture (added 2026-09-24)\n' "$(basename "$PROJECT_DIR")" \
+    > "$HOME_DIR/data/projects.md"
+  out=$(run_spawn "$id" --mode no-mistakes --yolo off)
+  status=$?
+  [ "$status" -ne 0 ] || fail "spawn launched from the default branch although the registered base is empty"
+  assert_contains "$out" "empty base=" "the refusal did not name the empty registered base"
+  pass "a registered work branch is the base a task is cut from, and a missing or empty one refuses"
 }
 
 make_originless_case() {  # <name> <id>
@@ -298,6 +308,24 @@ test_originless_pool_launches_without_a_freshness_fetch() {
     printf '# observed origin-less launch: %s\n' "$(printf '%s\n' "$out" | tail -n 1)"
   fi
   pass "an origin-less pooled worktree launches as-is, skipping the freshness gate"
+}
+
+test_originless_pool_refuses_a_registered_base() {
+  local rec id out status before
+  id='pool-originless-base-r1'
+  rec=$(make_originless_case originless-base "$id")
+  read_case_record "$rec"
+  before=$(git -C "$POOL_DIR" rev-parse HEAD)
+  printf -- '- %s [no-mistakes base=dev] - fixture (added 2026-09-24)\n' "$(basename "$PROJECT_DIR")" \
+    > "$HOME_DIR/data/projects.md"
+
+  out=$(run_spawn "$id" --mode no-mistakes --yolo off)
+  status=$?
+  [ "$status" -ne 0 ] || fail "spawn launched an origin-less pool although a base is registered"$'\n'"$out"
+  assert_contains "$out" "origin/dev" "the origin-less refusal did not name the registered base"
+  [ "$(git -C "$POOL_DIR" rev-parse HEAD)" = "$before" ] \
+    || fail "spawn moved HEAD while refusing an origin-less pool with a registered base"
+  pass "an origin-less pooled worktree refuses a registered base it cannot resolve"
 }
 
 test_originless_dirty_pool_refuses_without_discarding_work() {
@@ -792,6 +820,7 @@ test_dirty_pool_refuses_without_discarding_work
 test_unresolved_remote_default_refuses_pool
 test_unreachable_origin_refuses_stale_pool_base
 test_originless_pool_launches_without_a_freshness_fetch
+test_originless_pool_refuses_a_registered_base
 test_originless_dirty_pool_refuses_without_discarding_work
 test_origin_config_without_url_refuses_pool
 test_empty_origin_config_section_refuses_pool

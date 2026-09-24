@@ -3005,6 +3005,10 @@ freshen_spawn_worktree_base() { # <worktree> [<registered-base>]
     return 1
   fi
   if ! spawn_worktree_has_origin_config "$worktree"; then
+    [ -z "$default" ] || {
+      echo "error: pooled worktree '$worktree' has no origin, so its registered base 'origin/$default' cannot be resolved; refusing to launch from a different base" >&2
+      return 1
+    }
     return 0
   fi
   if ! git -C "$worktree" fetch --quiet origin; then

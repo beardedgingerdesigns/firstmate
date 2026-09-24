@@ -40,8 +40,8 @@
 # or its base is unregistered; the caller then uses origin's default branch, so
 # an unregistered home behaves exactly as before. Consumers are bin/fm-spawn.sh
 # (the branch a task worktree is cut from) and bin/fm-brief.sh (the PR base a
-# worker is told). A base that is not a valid branch name exits 1 rather than
-# silently falling back to the default branch it exists to override.
+# worker is told). An empty base= or one that is not a valid branch name exits
+# 1 rather than silently falling back to the default branch it exists to override.
 #
 # An unknown/missing project or unknown mode falls back to "no-mistakes off" and warns
 # to stderr, so a typo never silently drops the gate.
@@ -66,11 +66,18 @@ if [ "$BASE" -eq 1 ]; then
   base=$(awk -v n="$NAME" '
     $1=="-" && $2==n {
       if ($3 ~ /^\[/)
-        for (i=3; i<=NF; i++) { t=$i; sub(/^\[/, "", t); sub(/\]$/, "", t); if (t ~ /^base=/) { print substr(t, 6); exit } if ($i ~ /\]$/) exit }
+        for (i=3; i<=NF; i++) { t=$i; sub(/^\[/, "", t); sub(/\]$/, "", t); if (t ~ /^base=/) { print "=" substr(t, 6); exit } if ($i ~ /\]$/) exit }
       exit
     }
   ' "$REG")
+  # awk prefixes a present token with "=", so an empty value is told apart from
+  # no token at all.
   [ -n "$base" ] || exit 0
+  base=${base#=}
+  [ -n "$base" ] || {
+    echo "error: project \"$NAME\" registers an empty base=; name the work branch or remove the token in data/projects.md" >&2
+    exit 1
+  }
   git check-ref-format --branch "$base" >/dev/null 2>&1 || {
     echo "error: project \"$NAME\" registers base=$base, which is not a valid branch name; fix data/projects.md" >&2
     exit 1

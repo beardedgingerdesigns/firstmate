@@ -342,10 +342,23 @@ EOF
       return 1 ;;
   esac
   [ -n "$base" ] || return 0
+  # A valid branch name may still hold shell syntax ($, ;, ') or backticks, so
+  # the emitted commands shell-quote it and every code span survives backticks.
+  local q name
+  q=$(printf '%q' "$base")
+  name=$(fm_md_code "$base")
   case "$mode" in
-    direct-PR) echo "PR base: \`$base\`, this project's work branch, not the forge's default branch - open the PR with \`gh-axi pr create --base $base\` (\`gh pr create --base $base\`)." ;;
-    no-mistakes) echo "PR base: \`$base\`, this project's work branch, not the forge's default branch - start the run with \`no-mistakes axi run --base-branch $base\` so its rebase, PR, and CI target \`$base\`." ;;
+    direct-PR) echo "PR base: $name, this project's work branch, not the forge's default branch - open the PR with $(fm_md_code "gh-axi pr create --base $q") ($(fm_md_code "gh pr create --base $q"))." ;;
+    no-mistakes) echo "PR base: $name, this project's work branch, not the forge's default branch - start the run with $(fm_md_code "no-mistakes axi run --base-branch $q") so its rebase, PR, and CI target $name." ;;
   esac
+}
+
+# <text> as a Markdown code span whose delimiter outruns any backtick run inside
+# it, padded only when a longer delimiter is needed (CommonMark strips the pad).
+fm_md_code() {  # <text>
+  local fence='`'
+  while [[ $1 == *"$fence"* ]]; do fence+='`'; done
+  if [ "${#fence}" -eq 1 ]; then printf '%s%s%s' "$fence" "$1" "$fence"; else printf '%s %s %s' "$fence" "$1" "$fence"; fi
 }
 
 # 0 when <sha> is contained in a ref under <namespace> in <repo>.

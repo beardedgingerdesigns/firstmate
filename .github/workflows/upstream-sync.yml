@@ -1,0 +1,129 @@
+name: Upstream sync
+
+# Daily merge of kunchenguid/firstmate's main into this fork's main through
+# one bot-owned PR, so the fork tracks upstream by merging, never rebasing,
+# and fork main is never force-pushed. The job-level repository guard keeps
+# the schedule inert in every other repository, including upstream itself.
+# The sync PR is opened and merged with GITHUB_TOKEN, which never triggers
+# other workflows, so this fork's CI intentionally never runs on it; the
+# merge gate is upstream's own check runs on the synced commit.
+
+on:
+  schedule:
+    - cron: '42 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write        # push the bot-owned sync branch; the merge writes main
+  pull-requests: write   # open, refresh, and merge the sync PR
+  issues: write          # gh pr comment posts through the issue-comments endpoint
+
+# Serialize scheduled and manual runs so two syncs never race the branch.
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync upstream main
+    if: github.repository == 'beardedgingerdesigns/firstmate'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Open or refresh the sync PR and merge it when green
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # gh prefers a fork's parent (and any remote named "upstream") as
+          # the default PR target; pin every gh call to this repository so
+          # the sync PR is always fork-internal, never opened to kunchenguid.
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -eu
+
+          UPSTREAM_REPO=kunchenguid/firstmate
+          SYNC_BRANCH=upstream-sync
+
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch origin main
+          git fetch upstream main
+
+          # Quiet exit when fork main already contains upstream main.
+          if git merge-base --is-ancestor upstream/main origin/main; then
+            echo "origin/main already contains upstream/main; nothing to do"
+            exit 0
+          fi
+
+          upstream_sha=$(git rev-parse upstream/main)
+          echo "upstream/main is at ${upstream_sha} with commits not yet in origin/main:"
+          git log --oneline origin/main..upstream/main
+
+          # The sync branch is bot-owned, so force-updating only it is safe.
+          git push --force origin "upstream/main:refs/heads/${SYNC_BRANCH}"
+
+          body_file=$(mktemp)
+          {
+            printf 'Daily merge of %s into this fork.\n\n' "${UPSTREAM_REPO} main"
+            printf 'Upstream commits not yet in fork main:\n\n```\n'
+            git log --oneline origin/main..upstream/main
+            printf '```\n'
+          } > "$body_file"
+
+          pr_url=$(gh pr list --state open --base main --head "$SYNC_BRANCH" \
+            --limit 1 --json url --jq '.[0].url // empty')
+          if [ -n "$pr_url" ]; then
+            gh pr edit "$pr_url" --body-file "$body_file"
+            echo "refreshed open sync PR: ${pr_url}"
+          else
+            pr_url=$(gh pr create --base main --head "$SYNC_BRANCH" \
+              --title "Upstream sync: ${UPSTREAM_REPO} main" --body-file "$body_file")
+            echo "opened sync PR: ${pr_url}"
+          fi
+          rm -f "$body_file"
+
+          # GitHub computes mergeability asynchronously after the branch
+          # moves, so wait for a definite answer instead of acting on UNKNOWN.
+          mergeable=UNKNOWN
+          attempt=0
+          while [ "$mergeable" = "UNKNOWN" ] && [ "$attempt" -lt 12 ]; do
+            sleep 5
+            mergeable=$(gh pr view "$pr_url" --json mergeable --jq '.mergeable')
+            attempt=$((attempt + 1))
+          done
+
+          decline() {
+            gh pr comment "$pr_url" --body "$1"
+            printf '%s\n' "$1"
+            exit 0
+          }
+
+          if [ "$mergeable" = "CONFLICTING" ]; then
+            decline "Upstream sync not merged: ${UPSTREAM_REPO} main conflicts with fork main and needs manual resolution."
+          fi
+          if [ "$mergeable" != "MERGEABLE" ]; then
+            decline "Upstream sync not merged: GitHub still reports mergeability '${mergeable}'; the next run retries."
+          fi
+
+          # GitHub Actions results are check runs, which the combined status
+          # endpoint never reports (verified 2026-09-24: /status total_count 0
+          # on an upstream head with 18 green check runs), so aggregate the
+          # commit's own check runs: green only when every run is present and
+          # completed success, skipped, or neutral.
+          checks_state=$(gh api "repos/${UPSTREAM_REPO}/commits/${upstream_sha}/check-runs?per_page=100" | jq -r '
+            [.check_runs[]] as $runs
+            | if (.total_count == 0) then "absent"
+              elif (.total_count > ($runs | length)) then "overflow"
+              elif ($runs | map(select(.status != "completed")) | length > 0) then "pending"
+              elif ($runs | map(select((.conclusion == "success" or .conclusion == "skipped" or .conclusion == "neutral") | not)) | length > 0) then "failure"
+              else "success" end')
+          if [ "$checks_state" != "success" ]; then
+            decline "Upstream sync not merged: upstream checks for ${upstream_sha} are '${checks_state}', not green yet."
+          fi
+
+          # The fork sets allow_auto_merge=false, so merge directly here,
+          # always with a merge commit (never squash or rebase) so fork main
+          # keeps its full history and is never rewritten.
+          gh pr merge "$pr_url" --merge
+          echo "merged ${pr_url} with a merge commit"

@@ -72,28 +72,32 @@ jobs:
           git log --oneline origin/main..upstream/main
 
           # Force-update the sync branch only while the bot still owns it:
-          # when its remote tip is absent or still an ancestor of upstream
-          # main, updating it discards nothing. Any other tip is a manual
-          # conflict resolution; force-updating would wipe that work, so
-          # leave the branch alone and report on the open PR instead.
+          # when its remote tip is absent or already an ancestor of upstream
+          # main or fork main, updating it discards nothing. Any other tip is
+          # a manual conflict resolution; force-updating would wipe that work,
+          # so leave the branch alone and report on the open PR instead. The
+          # push leases against the checked tip, so a failed lookup or a raced
+          # push is refused instead of overwriting the branch.
           sync_tip=$(git ls-remote origin "refs/heads/${SYNC_BRANCH}" | cut -f1)
           if [ -z "$sync_tip" ]; then
             echo "no remote ${SYNC_BRANCH} branch yet; creating it at upstream main"
           else
             git fetch -q origin "refs/heads/${SYNC_BRANCH}"
-            if ! git merge-base --is-ancestor "$sync_tip" upstream/main; then
-              msg="Upstream sync skipped: ${SYNC_BRANCH} has manual commits (tip ${sync_tip}) not contained in ${UPSTREAM_REPO} main, so the branch was left alone. To resolve, merge ${UPSTREAM_REPO} main into fork main locally and push main; do not commit to ${SYNC_BRANCH}."
+            if ! git merge-base --is-ancestor "$sync_tip" upstream/main && ! git merge-base --is-ancestor "$sync_tip" origin/main; then
+              msg="Upstream sync skipped: ${SYNC_BRANCH} has manual commits (tip ${sync_tip}) not contained in ${UPSTREAM_REPO} main, so the branch was left alone. To resolve, merge this PR once the resolution is complete, or delete the ${SYNC_BRANCH} branch to hand it back to the sync."
               pr_url=$(gh pr list --state open --base main --head "$SYNC_BRANCH" \
                 --limit 1 --json url --jq '.[0].url // empty')
               if [ -n "$pr_url" ]; then
                 gh pr comment "$pr_url" --body "$msg"
+                printf '%s\n' "$msg"
+                exit 0
               fi
               printf '%s\n' "$msg"
-              exit 0
+              exit 1
             fi
             echo "${SYNC_BRANCH} tip ${sync_tip} is still upstream history; updating it"
           fi
-          git push --force origin "upstream/main:refs/heads/${SYNC_BRANCH}"
+          git push --force-with-lease="refs/heads/${SYNC_BRANCH}:${sync_tip}" origin "upstream/main:refs/heads/${SYNC_BRANCH}"
 
           body_file=$(mktemp)
           {

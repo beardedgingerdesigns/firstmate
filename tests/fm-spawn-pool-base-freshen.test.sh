@@ -215,6 +215,44 @@ test_non_main_default_branch_refreshes_before_branching() {
   pass "a stale pooled worktree resolves and refreshes a non-main default branch"
 }
 
+test_registered_base_cuts_the_task_branch_from_it() {
+  local rec id out status work branch_head
+  id='pool-registered-base-r21'
+  rec=$(make_case registered-base "$id")
+  read_case_record "$rec"
+  # The work branch differs from the forge default, which stays main.
+  work="$CASE_DIR/work"
+  git clone --quiet "$(git -C "$PROJECT_DIR" remote get-url origin)" "$work"
+  git -C "$work" checkout --quiet -b dev
+  printf 'only on the work branch\n' > "$work/dev-only.txt"
+  git -C "$work" add dev-only.txt
+  git -C "$work" -c user.name='Firstmate Tests' -c user.email='tests@example.invalid' commit -qm dev-work
+  git -C "$work" push --quiet origin dev
+  printf -- '- %s [no-mistakes base=dev] - fixture (added 2026-09-24)\n' "$(basename "$PROJECT_DIR")" \
+    > "$HOME_DIR/data/projects.md"
+
+  out=$(run_spawn "$id" --mode no-mistakes --yolo off)
+  status=$?
+  expect_code 0 "$status" "spawn should cut from the registered base"$'\n'"$out"
+  branch_head=$(git -C "$POOL_DIR" rev-parse HEAD)
+  [ "$branch_head" = "$(git -C "$POOL_DIR" rev-parse origin/dev)" ] \
+    || fail "spawn did not cut the task from origin/dev"
+  [ "$branch_head" != "$(git -C "$POOL_DIR" rev-parse origin/main)" ] \
+    || fail "fixture did not separate origin/dev from origin/main"
+  [ -f "$POOL_DIR/dev-only.txt" ] || fail "the task copy is missing work-branch content"
+
+  # A registered base the remote lacks refuses rather than falling back to main.
+  id='pool-registered-base-missing-r21'
+  fm_test_spawn_brief "$HOME_DIR" "$id"
+  printf -- '- %s [no-mistakes base=nope] - fixture (added 2026-09-24)\n' "$(basename "$PROJECT_DIR")" \
+    > "$HOME_DIR/data/projects.md"
+  out=$(run_spawn "$id" --mode no-mistakes --yolo off)
+  status=$?
+  [ "$status" -ne 0 ] || fail "spawn launched although origin has no registered base branch"
+  assert_contains "$out" "origin/nope" "the refusal did not name the missing registered base"
+  pass "a registered work branch is the base a task is cut from, and a missing one refuses"
+}
+
 make_originless_case() {  # <name> <id>
   local name=$1 id=$2 case_dir home project pool fakebin initial
   case_dir="$TMP_ROOT/$name"
@@ -748,6 +786,7 @@ test_pool_slot_claim_follows_the_spawn_outcome
 test_linked_spawning_home_rejects_primary_before_refresh
 test_stale_pool_base_refreshes_before_branching
 test_non_main_default_branch_refreshes_before_branching
+test_registered_base_cuts_the_task_branch_from_it
 test_direct_pr_and_scout_refresh_before_launch
 test_dirty_pool_refuses_without_discarding_work
 test_unresolved_remote_default_refuses_pool

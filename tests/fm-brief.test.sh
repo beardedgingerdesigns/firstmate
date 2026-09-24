@@ -271,6 +271,29 @@ test_ship_mode_is_explicit_not_registry() {
   pass "fm-brief.sh: the explicit ship mode wins over the registered posture"
 }
 
+test_registered_base_names_the_pr_base() {
+  local home
+  home="$TMP_ROOT/pr-base-home"
+  mkdir -p "$home/data"
+  cat > "$home/data/projects.md" <<'EOF'
+- devproj [no-mistakes base=dev] - fixture (added 2026-09-24)
+- plainproj [direct-PR] - fixture (added 2026-09-24)
+EOF
+  FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-base-nm devproj --mode no-mistakes >/dev/null 2>&1 \
+    || fail "no-mistakes brief on a registered base should scaffold"
+  assert_grep 'no-mistakes axi run --base-branch dev' "$home/data/brief-base-nm/brief.md" \
+    "no-mistakes brief did not name the registered PR base"
+  FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-base-pr devproj --mode direct-PR >/dev/null 2>&1 \
+    || fail "direct-PR brief on a registered base should scaffold"
+  assert_grep 'pr create --base dev' "$home/data/brief-base-pr/brief.md" \
+    "direct-PR brief did not name the registered PR base"
+  FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-base-none plainproj --mode direct-PR >/dev/null 2>&1 \
+    || fail "direct-PR brief without a registered base should scaffold"
+  assert_no_grep 'PR base:' "$home/data/brief-base-none/brief.md" \
+    "a project without a registered base was given an explicit PR base"
+  pass "fm-brief.sh: a registered work branch is the PR base the worker is told"
+}
+
 # yolo is firstmate's merge authority and never reaches the worker, and a scout
 # or charter carries no delivery contract. Each must refuse rather than accept and
 # discard the flag, which would look recorded but change nothing.
@@ -1095,6 +1118,7 @@ test_help_includes_entire_header
 test_ship_modes_generate_clean_briefs
 test_ship_mode_is_required_and_closed_set
 test_ship_mode_is_explicit_not_registry
+test_registered_base_names_the_pr_base
 test_delivery_flags_are_refused_where_they_do_not_apply
 test_faster_paths_use_configured_authority_without_stacked_review
 test_no_mistakes_dod_wording

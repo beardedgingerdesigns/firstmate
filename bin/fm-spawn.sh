@@ -2988,8 +2988,10 @@ spawn_worktree_has_origin_config() { # <worktree>
   return 1
 }
 
-freshen_spawn_worktree_base() { # <worktree>
-  local worktree=$1 default target expected actual status
+freshen_spawn_worktree_base() { # <worktree> [<registered-base>]
+  # An explicit registered base (bin/fm-project-mode.sh --base) is the branch the
+  # task is cut from; without one, origin's current default branch is.
+  local worktree=$1 default=${2:-} target expected actual status
   status=$(git -C "$worktree" -c core.quotePath=false status --porcelain) || {
     echo "error: could not inspect pooled worktree '$worktree' before refreshing its base" >&2
     return 1
@@ -3009,14 +3011,16 @@ freshen_spawn_worktree_base() { # <worktree>
     echo "error: could not fetch origin for pooled worktree '$worktree'; refusing to launch from a potentially stale base" >&2
     return 1
   fi
-  if ! git -C "$worktree" remote set-head origin --auto >/dev/null 2>&1; then
-    echo "error: could not resolve origin's current default branch for pooled worktree '$worktree'; refusing to launch from a potentially stale base" >&2
-    return 1
+  if [ -z "$default" ]; then
+    if ! git -C "$worktree" remote set-head origin --auto >/dev/null 2>&1; then
+      echo "error: could not resolve origin's current default branch for pooled worktree '$worktree'; refusing to launch from a potentially stale base" >&2
+      return 1
+    fi
+    default=$(default_branch "$worktree") || {
+      echo "error: could not determine origin's default branch for pooled worktree '$worktree'; refusing to launch from a potentially stale base" >&2
+      return 1
+    }
   fi
-  default=$(default_branch "$worktree") || {
-    echo "error: could not determine origin's default branch for pooled worktree '$worktree'; refusing to launch from a potentially stale base" >&2
-    return 1
-  }
   target="origin/$default"
   if ! git -C "$worktree" fetch --quiet origin "+refs/heads/$default:refs/remotes/origin/$default"; then
     echo "error: could not fetch '$target' for pooled worktree '$worktree'; refusing to launch from a potentially stale base" >&2
@@ -3972,7 +3976,8 @@ elif [ "$KIND" != secondmate ] && [ "$BACKEND" != orca ]; then
   fi
 fi
 if [ "$RELAUNCH" -eq 0 ] && [ "$KIND" != secondmate ]; then
-  freshen_spawn_worktree_base "$WT" || exit 1
+  SPAWN_BASE=$(FM_HOME="$FM_HOME" FM_DATA_OVERRIDE="$DATA" "$FM_ROOT/bin/fm-project-mode.sh" --base "$(basename "$PROJ_ABS")") || exit 1
+  freshen_spawn_worktree_base "$WT" "$SPAWN_BASE" || exit 1
 fi
 
 # Pre-register Claude's workspace trust for the directory this launch starts in,

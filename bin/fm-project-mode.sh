@@ -15,6 +15,10 @@
 #   - <name> - <desc> (added <date>)                  -> no-mistakes off  (legacy default)
 #   - <name> [<mode>] - <desc> (added <date>)          -> <mode> off
 #   - <name> [<mode> +yolo] - <desc> (added <date>)    -> <mode> on
+#   - <name> [<mode> base=<branch>] - <desc> (added <date>)  -> <mode> off, base <branch>
+# base=<branch> is optional and orthogonal: it names the project's work branch,
+# the one task branches are cut from and PRs target, when that differs from the
+# forge's default branch.
 #
 # Registered modes:
 #   no-mistakes            full pipeline -> PR -> configured merge authority (default)
@@ -32,9 +36,16 @@
 # --raw prints the registered annotation unmapped, so a caller that must tell a
 # conditional policy apart from a flat mode sees "no-mistakes-prod-only" itself.
 #
+# --base prints only the registered base=<branch>, or nothing when the project
+# or its base is unregistered; the caller then uses origin's default branch, so
+# an unregistered home behaves exactly as before. Consumers are bin/fm-spawn.sh
+# (the branch a task worktree is cut from) and bin/fm-brief.sh (the PR base a
+# worker is told). A base that is not a valid branch name exits 1 rather than
+# silently falling back to the default branch it exists to override.
+#
 # An unknown/missing project or unknown mode falls back to "no-mistakes off" and warns
 # to stderr, so a typo never silently drops the gate.
-# Usage: fm-project-mode.sh [--raw] <project-name>
+# Usage: fm-project-mode.sh [--raw|--base] <project-name>
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,11 +54,30 @@ FM_HOME="${FM_HOME:-${FM_ROOT_OVERRIDE:-$FM_ROOT}}"
 DATA="${FM_DATA_OVERRIDE:-$FM_HOME/data}"
 REG="$DATA/projects.md"
 RAW=0
-if [ "${1:-}" = "--raw" ]; then
-  RAW=1
-  shift
+BASE=0
+case "${1:-}" in
+  --raw) RAW=1; shift ;;
+  --base) BASE=1; shift ;;
+esac
+NAME=${1:?usage: fm-project-mode.sh [--raw|--base] <project-name>}
+
+if [ "$BASE" -eq 1 ]; then
+  [ -f "$REG" ] || exit 0
+  base=$(awk -v n="$NAME" '
+    $1=="-" && $2==n {
+      if ($3 ~ /^\[/)
+        for (i=3; i<=NF; i++) { t=$i; sub(/^\[/, "", t); sub(/\]$/, "", t); if (t ~ /^base=/) { print substr(t, 6); exit } if ($i ~ /\]$/) exit }
+      exit
+    }
+  ' "$REG")
+  [ -n "$base" ] || exit 0
+  git check-ref-format --branch "$base" >/dev/null 2>&1 || {
+    echo "error: project \"$NAME\" registers base=$base, which is not a valid branch name; fix data/projects.md" >&2
+    exit 1
+  }
+  echo "$base"
+  exit 0
 fi
-NAME=${1:?usage: fm-project-mode.sh [--raw] <project-name>}
 
 if [ ! -f "$REG" ]; then
   echo "warn: no registry at $REG; defaulting $NAME to no-mistakes off" >&2
@@ -64,7 +94,7 @@ parsed=$(awk -v n="$NAME" '
       for (i=3; i<=NF; i++) { s = s (s==""?"":" ") $i; if ($i ~ /\]$/) break }
       gsub(/^\[|\]$/, "", s);           # strip the surrounding brackets
       k = split(s, a, " ");
-      if (a[1] != "" && a[1] != "+yolo") mode = a[1];
+      if (a[1] != "" && a[1] != "+yolo" && a[1] !~ /^base=/) mode = a[1];
       for (j=1; j<=k; j++) if (a[j]=="+yolo") yolo="on";
     }
     print mode, yolo; exit

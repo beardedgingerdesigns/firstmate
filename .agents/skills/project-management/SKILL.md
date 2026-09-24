@@ -52,6 +52,9 @@ The optional `+yolo` posture changes merge authority only and does not change th
 Default it off for every project and every posture, and enable it only on the captain's explicit instruction.
 `AGENTS.md` section 7 owns the merge-authority contract.
 
+The optional `base=<branch>` token names the project's work branch when it differs from the forge's default branch; task branches are cut from it and PRs target it.
+Record it when adding a project whose work branch is not its default, and omit it otherwise; `bin/fm-project-mode.sh` owns its syntax and fallback.
+
 ## Add or clone an existing project
 
 Confirm the source URL, local project name, delivery posture, and autonomy posture, stating the resolved default for each rather than asking the captain to invent one.

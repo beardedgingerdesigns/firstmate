@@ -18,8 +18,10 @@
 # pr_head= in no-mistakes mode, or a recorded merge
 # (state/<id>.pr-poll-merge-notified). Teardown's landed-work test remains the
 # complete discard gate.
-# fm_dod_block <no-mistakes|direct-PR|local-only> <task-id> prints the block on
-# stdout with no trailing blank line. The caller validates the mode; an unknown
+# fm_dod_block <no-mistakes|direct-PR|local-only> <task-id> [<pr-base>] prints the block on
+# stdout with no trailing blank line. A non-empty <pr-base> (the project's
+# registered work branch, bin/fm-project-mode.sh --base) adds the exact PR base
+# to the two PR-based blocks. The caller validates the mode; an unknown
 # mode is refused rather than silently rendered as the pipeline contract.
 # The block opens with the fixed machine-readable "Delivery contract: mode=<mode>"
 # line that bin/fm-spawn.sh checks a ship brief against.
@@ -262,8 +264,8 @@ fm_ask_user_escalation_block() {  # <data-dir> <task-id>
 EOF
 }
 
-fm_dod_block() {  # <mode> <task-id>
-  local mode=$1 id=$2
+fm_dod_block() {  # <mode> <task-id> [<pr-base>]
+  local mode=$1 id=$2 base=${3:-}
   case "$mode" in
     direct-PR)
       cat <<EOF
@@ -338,6 +340,11 @@ EOF
     *)
       echo "error: fm_dod_block: unknown delivery mode '$mode'" >&2
       return 1 ;;
+  esac
+  [ -n "$base" ] || return 0
+  case "$mode" in
+    direct-PR) echo "PR base: \`$base\`, this project's work branch, not the forge's default branch - open the PR with \`gh-axi pr create --base $base\` (\`gh pr create --base $base\`)." ;;
+    no-mistakes) echo "PR base: \`$base\`, this project's work branch, not the forge's default branch - start the run with \`no-mistakes axi run --base-branch $base\` so its rebase, PR, and CI target \`$base\`." ;;
   esac
 }
 

@@ -432,6 +432,38 @@ EOF
   pass "fm-project-mode: the conditional policy is accepted, mapped for mechanical callers, and readable raw"
 }
 
+# base=<branch> names a project's work branch without disturbing its mode or
+# yolo; absent, --base prints nothing so callers keep origin's default branch.
+test_project_mode_reads_the_registered_base() {
+  local home out status
+  home="$TMP_ROOT/project-base/home"
+  mkdir -p "$home/data"
+  cat > "$home/data/projects.md" <<'EOF'
+- devproj [direct-PR +yolo base=dev] - fixture (added 2026-09-24)
+- onlybase [base=release/1.x] - fixture (added 2026-09-24)
+- nobase [local-only] - fixture (added 2026-09-24)
+- badbase [no-mistakes base=bad..name] - fixture (added 2026-09-24)
+EOF
+  out=$(FM_HOME="$home" "$PROJECT_MODE" --base devproj)
+  [ "$out" = dev ] || fail "--base did not read the registered base (got '$out')"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" devproj 2>/dev/null)
+  [ "$out" = "direct-PR on" ] || fail "a base token disturbed mode or yolo (got '$out')"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" --base onlybase)
+  [ "$out" = release/1.x ] || fail "--base missed a bracket holding only a base (got '$out')"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" onlybase 2>/dev/null)
+  [ "$out" = "no-mistakes off" ] || fail "a bracket holding only a base was read as a mode (got '$out')"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" --base nobase)
+  status=$?
+  [ "$status" -eq 0 ] && [ -z "$out" ] || fail "an absent base did not fall back to nothing (got '$out', exit $status)"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" --base unregistered)
+  [ -z "$out" ] || fail "an unregistered project reported a base (got '$out')"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" --base badbase 2>&1)
+  status=$?
+  [ "$status" -ne 0 ] || fail "an invalid base name was accepted"
+  assert_contains "$out" "not a valid branch name" "an invalid base did not explain itself"
+  pass "fm-project-mode: --base reads the registered work branch and falls back to nothing when absent"
+}
+
 # Spawn and promotion refuse leftover Task-subsection placeholders through the
 # public brief/spawn/promote path. Filling both subsections lets the spawn
 # delivery checks proceed (the fake tmux still fails later).
@@ -892,5 +924,6 @@ test_promote_requires_and_records_the_delivery_contract
 test_promote_refuses_a_symlinked_task_record
 test_promotion_delivers_the_real_definition_of_done
 test_project_mode_maps_the_conditional_policy
+test_project_mode_reads_the_registered_base
 test_spawn_and_promote_require_filled_task_subsections
 echo "# all fm-task-delivery tests passed"

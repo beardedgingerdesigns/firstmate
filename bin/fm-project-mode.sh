@@ -29,6 +29,7 @@
 #   - <name> [<mode> +yolo branch=<prefix>] - <desc> (added <date>)  -> <mode> <yolo> <prefix>
 #   - <name> [<mode> forge=gerrit] - <desc> (added <date>)           -> <mode> off, --forge gerrit
 #   - <name> [<mode> base=<branch>] - <desc> (added <date>)          -> <mode> off, --base <branch>
+#   <name> may contain spaces; it ends at the literal " [" or " - " that follows it.
 #   Bracket tokens are order-independent: +yolo, branch=<prefix>, forge=<value>,
 #   and base=<branch> are recognized by their own shape wherever they appear, and
 #   whichever token is left over is the mode. <prefix> must not contain a space; an empty override
@@ -126,9 +127,16 @@ NAME=${1:?usage: fm-project-mode.sh [--raw|--branch-prefix|--forge|--base] <proj
 if [ "$BASE" -eq 1 ]; then
   [ -f "$REG" ] || exit 0
   base=$(awk -v n="$NAME" '
-    $1=="-" && $2==n {
-      if ($3 ~ /^\[/)
-        for (i=3; i<=NF; i++) { t=$i; sub(/^\[/, "", t); sub(/\]$/, "", t); if (t ~ /^base=/) { print "=" substr(t, 6); exit } if ($i ~ /\]$/) exit }
+    {
+      # Same exact whole-name match as the posture parser below.
+      prefix = "- " n; plen = length(prefix);
+      if (substr($0, 1, plen) != prefix) next
+      after = substr($0, plen + 1);
+      if (after != "" && substr(after, 1, 2) != " [" && substr(after, 1, 3) != " - ") next
+      if (substr(after, 1, 2) == " [") {
+        nk = split(after, rest, " ");
+        for (i=1; i<=nk; i++) { t=rest[i]; sub(/^\[/, "", t); sub(/\]$/, "", t); if (t ~ /^base=/) { print "=" substr(t, 6); exit } if (rest[i] ~ /\]$/) exit }
+      }
       exit
     }
   ' "$REG")
@@ -176,11 +184,21 @@ parsed=$(awk -v n="$NAME" '
     }
     return d[lx,ly];
   }
-  $1=="-" && $2==n {
+  {
+    # Exact whole-name match on the raw line text (never a regex, so a name
+    # containing dots or brackets is compared literally): the line must start
+    # with "- " n, and the text right after the name must be empty, or start
+    # with " [" or " - ", so a name that is a leading prefix of a longer
+    # registered name does not match that longer row.
+    prefix = "- " n; plen = length(prefix);
+    if (substr($0, 1, plen) != prefix) next
+    after = substr($0, plen + 1);
+    if (after != "" && substr(after, 1, 2) != " [" && substr(after, 1, 3) != " - ") next
     mode="no-mistakes"; yolo="off"; branch="fm/"; forge="none";
-    if ($3 ~ /^\[/) {
+    if (substr(after, 1, 2) == " [") {
       s="";
-      for (i=3; i<=NF; i++) { s = s (s==""?"":" ") $i; if ($i ~ /\]$/) break }
+      nk = split(after, rest, " ");
+      for (i=1; i<=nk; i++) { s = s (s==""?"":" ") rest[i]; if (rest[i] ~ /\]$/) break }
       gsub(/^\[|\]$/, "", s);           # strip the surrounding brackets
       k = split(s, a, " ");
       # Tokens are order-independent: +yolo, branch=<prefix>, forge=<value>, and

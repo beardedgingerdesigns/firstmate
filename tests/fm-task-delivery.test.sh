@@ -536,6 +536,38 @@ EOF
   pass "fm-merge-local: a registry change cannot redirect an in-flight local-only task"
 }
 
+# A registered name may contain spaces, and the lookup must match the whole
+# name rather than only its first whitespace-delimited token (issue #1977).
+# The longer "foo bar" row is listed before the "foo" row so a leading-prefix
+# match would pick the wrong row if the fix regressed.
+test_project_mode_matches_whole_multiword_names() {
+  local home out err
+  home="$TMP_ROOT/project-mode-multiword/home"
+  mkdir -p "$home/data"
+  cat > "$home/data/projects.md" <<'EOF'
+- 048. Blast- Lease summary drafter [local-only] - fixture (added 2026-01-01)
+- foo bar [local-only +yolo branch=x/] - fixture (added 2026-01-01)
+- foo [direct-PR] - fixture (added 2026-01-01)
+- controlproj [direct-PR] - fixture (added 2026-01-01)
+EOF
+  out=$(FM_HOME="$home" "$PROJECT_MODE" "048. Blast- Lease summary drafter" 2>/dev/null)
+  [ "$out" = "local-only off" ] || fail "a multi-word registered name did not resolve to its own row (got '$out')"
+  err=$(FM_HOME="$home" "$PROJECT_MODE" "048. Blast- Lease summary drafter" 2>&1 >/dev/null)
+  [ -z "$err" ] || fail "a multi-word registered name still warned as not in the registry: $err"
+
+  out=$(FM_HOME="$home" "$PROJECT_MODE" foo 2>/dev/null)
+  [ "$out" = "direct-PR off" ] || fail "a single-word name matched a longer name it prefixes (got '$out')"
+
+  out=$(FM_HOME="$home" "$PROJECT_MODE" "foo bar" 2>/dev/null)
+  [ "$out" = "local-only on" ] || fail "a longer multi-word name did not resolve to its own row (got '$out')"
+  out=$(FM_HOME="$home" "$PROJECT_MODE" --branch-prefix "foo bar" 2>/dev/null)
+  [ "$out" = "x/" ] || fail "a multi-word name's registered branch prefix did not resolve (got '$out')"
+
+  out=$(FM_HOME="$home" "$PROJECT_MODE" controlproj 2>/dev/null)
+  [ "$out" = "direct-PR off" ] || fail "a single-word control name regressed (got '$out')"
+  pass "fm-project-mode: the registry lookup matches a whole multi-word name, not just its first token"
+}
+
 # The registry parser survives for the mechanical consumers only. It accepts the
 # conditional policy, maps it to its most rigorous leg for them, and exposes the
 # raw annotation for the one caller that must tell a policy from a flat mode.
@@ -583,6 +615,8 @@ test_project_mode_reads_the_registered_base() {
 - badbase [no-mistakes base=bad..name] - fixture (added 2026-09-24)
 - emptybase [direct-PR base=] - fixture (added 2026-09-24)
 - mixbase [base=dev forge=gerrit direct-PR branch=fix/] - fixture (added 2026-09-25)
+- two words [direct-PR base=dev] - fixture (added 2026-09-28)
+- two [local-only] - fixture (added 2026-09-28)
 EOF
   out=$(FM_HOME="$home" "$PROJECT_MODE" --base devproj)
   [ "$out" = dev ] || fail "--base did not read the registered base (got '$out')"
@@ -612,6 +646,10 @@ EOF
   [ "$(FM_HOME="$home" "$PROJECT_MODE" --base mixbase)" = dev ] || fail "--base missed a base beside forge and branch"
   [ "$(FM_HOME="$home" "$PROJECT_MODE" --forge mixbase 2>/dev/null)" = gerrit ] || fail "a base token disturbed the forge binding"
   [ "$(FM_HOME="$home" "$PROJECT_MODE" --branch-prefix mixbase 2>/dev/null)" = fix/ ] || fail "a base token disturbed the branch prefix"
+  # --base matches a whole multi-word name like the posture lookup, never a
+  # leading-prefix row.
+  [ "$(FM_HOME="$home" "$PROJECT_MODE" --base "two words")" = dev ] || fail "--base missed a multi-word registered name"
+  [ -z "$(FM_HOME="$home" "$PROJECT_MODE" --base two)" ] || fail "--base read a longer name's base for a name it prefixes"
   pass "fm-project-mode: --base reads the registered work branch, falls back to nothing when absent, and refuses an empty one"
 }
 
@@ -1683,6 +1721,7 @@ test_promotion_delivers_the_real_definition_of_done
 test_promotion_persists_the_selected_ship_branch
 test_promotion_branch_command_is_shell_safe
 test_local_merge_uses_the_recorded_ship_branch
+test_project_mode_matches_whole_multiword_names
 test_project_mode_maps_the_conditional_policy
 test_project_mode_reads_the_registered_base
 test_promotion_targets_the_registered_base

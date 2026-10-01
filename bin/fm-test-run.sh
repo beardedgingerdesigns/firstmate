@@ -1473,6 +1473,9 @@ families_for_changed_path() {
     bin/fm-procevent-quota.sh)
       printf '%s\n' "__script__:fm-procevent-quota.test.sh"
       ;;
+    bin/fm-procevent-answer-drop.sh)
+      printf '%s\n' "__script__:fm-procevent-answer-drop.test.sh"
+      ;;
     bin/fm-quota-choose.sh)
       printf '%s\n' "__script__:fm-quota-choose.test.sh"
       ;;

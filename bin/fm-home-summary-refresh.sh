@@ -7,7 +7,12 @@
 # `fm-fleet-snapshot.sh --secondmate-home-summary` document for this FM_HOME.
 # Its schema remains `fm-secondmate-home-summary.v1`, declares the current hold
 # classifier contract, and includes both the existing generated timestamp and
-# generated_epoch for freshness arithmetic.
+# generated_epoch for freshness arithmetic. Additive structured-answer fields
+# (generated_at, fleet, per-decision options and question_fingerprint,
+# answers_inbox, answers_seen) are versioned by answers_channel_schema
+# `fm-captain-answer-drop.v1`; bin/fm-fleet-snapshot.sh --help owns their shape.
+# After a successful publication the refresh arms the answer-drop source when an
+# answer is already waiting (bin/fm-procevent-answer-drop.sh arm --if-pending).
 #
 # Publication is atomic: the producer writes and validates a unique mode-0600
 # temporary file on the state directory's filesystem, then renames it over the
@@ -162,6 +167,11 @@ home_summary_refresh_once() {
     and (.state | type) == "string"
     and (.invalidity | type) == "object"
     and (.active_children | type) == "array"
+    and .generated_at == .generated
+    and .answers_channel_schema == "fm-captain-answer-drop.v1"
+    and (.fleet | type) == "array"
+    and (.answers_inbox == null or (.answers_inbox | type) == "string")
+    and (.answers_seen | type) == "array"
     and (.decisions_open | type) == "array"
     and (.holds | type) == "array"
     and (.queued | type) == "array"
@@ -185,6 +195,10 @@ home_summary_refresh_once() {
   fm_lock_release "$REFRESH_LOCK"
   HOME_SUMMARY_LOCK_HELD=0
   trap - EXIT HUP INT TERM
+  # The summary advertises answers_inbox, so the first answer dropped there
+  # arms its consumer; an empty folder registers nothing.
+  FM_HOME="$FM_HOME" FM_STATE_OVERRIDE="$STATE" \
+    "$SCRIPT_DIR/fm-procevent-answer-drop.sh" arm --if-pending >/dev/null 2>&1 || true
   return 0
 }
 

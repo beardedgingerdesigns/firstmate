@@ -62,6 +62,8 @@ Repeat and edge cases:
 - Re-holding released work starts a new timestamped lifecycle.
 - A closed task is refused rather than reopened.
 - `--until` stores the captain's own deferral date through tasks-axi's date gate.
+- Repeatable `--option <key>=<label>` records structured answer choices under `data/captain-hold-options/<task-id>.json`, bound to this lifecycle's hold-set timestamp so a re-held task never shows stale choices.
+  A free-text-only hold carries no options, and the key `reconcile` is refused because the intake reserves it.
 
 ### Answering a call (`answer`)
 
@@ -210,7 +212,7 @@ An unbound source feeds nothing, so the path is opt-in per source.
 
 ### Channels that feed the intake
 
-Two channels feed that one intake today, and both are ordinary callers rather than special cases.
+Three channels feed that one intake today, and all are ordinary callers rather than special cases.
 
 `bin/fm-send.sh --resolve-key` is the chat channel:
 
@@ -228,6 +230,14 @@ Two channels feed that one intake today, and both are ordinary callers rather th
 `bin/fm-procevent-lavish.sh answers` is one such built-in adapter command.
 It reads only rows tagged `choice` and relays a card's declared close mode.
 It can never let freeform captain prose forge a task id or a mode.
+
+`bin/fm-procevent-answer-drop.sh` is the local structured channel, fed by a reader of the home summary such as aios-ui:
+
+- It calls the intake itself with `--source aios-ui`, one keyed line per answer file, because it must record each file's own outcome; its source is therefore never bound.
+- It rejects an answer whose `question_fingerprint` no longer matches the hold as now worded, so an answer never lands on a question reworded after it was shown.
+- An option answer feeds the option key with its label as shown, and a text answer feeds the captain's words.
+- The close mode comes from the hold, never from the file: a row minted for the question (`kind: captain`) completes, while a held work item is released.
+- The first answer wins across all channels, and a later one is reported back as `already-answered`.
 
 Trusted external process-event adapters intentionally expose no answer operation and cannot feed this authority-bearing intake; [`extension-bindings.md`](extension-bindings.md#trust-boundary) owns that boundary.
 

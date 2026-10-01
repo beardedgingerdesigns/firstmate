@@ -61,6 +61,8 @@ This is generic across built-in adapters with an `answers` command, and the runn
 External process-event bindings intentionally expose no answer operation and cannot feed the captain-answer intake.
 `captain-hold-lifecycle` owns when a binding is required and what the keys must be.
 
+The captain-answer drop folder source (`bin/fm-procevent-answer-drop.sh`) arms itself on first use and applies and acknowledges its own rounds; on its wake, run its `read <result-file>` to see each answer's outcome and act on every `resolved` hold as you would on any recorded captain answer.
+
 A configured remote secondmate reply source is armed and handled through `bin/fm-procevent-remote-reply.sh`.
 Its header owns exact commands, while the adapter owns cursor continuity, validated deduplicated status ingest, path-confined document fetch, acknowledgement, and re-arming after a good delta.
 A continuity break is escalated once and stays unarmed until an operator deliberately rebases it.

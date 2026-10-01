@@ -252,7 +252,17 @@ Its invalidity object names the normalized failure kind and affected ids.
 Actionable tasks-axi captain holds appear as decisions_open and stay visible in
 queued with hold_reason, hold_kind, hold_until,
 hold_bucket, hold_age_days, and plural blocker fields for downstream
-projections. A captain hold is actionable only when every blocker is Done, any
+projections. Each decisions_open entry also carries project, options (the
+hold's {key,label} choices from fm-captain-hold.sh hold --option, else []), and
+question_fingerprint: the lowercase hex SHA-256 of the hold reason's exact
+UTF-8 bytes as the backlog row stores it (whitespace-trimmed, untruncated, no
+trailing newline), or null for a status-log decision, which the answer drop
+cannot answer. The summary also carries generated_at (equal to generated),
+fleet[] {name,kind crewmate|secondmate,task_id,project,model,state
+working|parked|done|blocked|paused|failed|unknown,since (time of the last
+status event)} bounded like active_children, answers_inbox (the absolute drop
+folder, or null when unavailable), and answers_seen (bin/fm-procevent-answer-drop.sh
+summary), all versioned by answers_channel_schema fm-captain-answer-drop.v1. A captain hold is actionable only when every blocker is Done, any
 hold-until date has arrived, and an undated hold remains below the aging threshold.
 Cross-home collection uses FM_SNAPSHOT_SECONDMATES (default 20, 0 lifts the
 count bound) and FM_SNAPSHOT_SECONDMATE_MAX_BYTES.
@@ -856,6 +866,7 @@ task_json_lines() {
       --arg id "$id" \
       --arg kind "$kind" \
       --arg harness "$harness" \
+      --arg model "$(meta_value "$meta" model)" \
       --arg mode "$mode" \
       --arg yolo "$yolo" \
       --arg branch "$branch" \
@@ -889,6 +900,7 @@ task_json_lines() {
         id:$id,
         kind:$kind,
         harness:($harness // ""),
+        model:($model | if . == "" then null else . end),
         mode:($mode // ""),
         yolo:($yolo // ""),
         branch:($branch | if . == "" then null else . end),
@@ -966,7 +978,7 @@ main_inventory_json() {  # <backlog-json-file> <tasks-json-file>
 # validated parent read needs.
 # This mode never reads parent events or terminal text and never aggregates
 # nested secondmates.
-secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
+secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answer-drop-json-file>
   jq -n \
     --arg generated "$SNAPSHOT_NOW" \
     --argjson generated_epoch "$SNAPSHOT_EPOCH" \
@@ -976,7 +988,8 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
     --argjson decisions_n "$FM_SNAPSHOT_SECONDMATE_DECISIONS" \
     --argjson landed_n "$FM_SNAPSHOT_SECONDMATE_LANDED_PER_HOME" \
     --slurpfile backlog "$1" \
-    --slurpfile tasks "$2" --slurpfile contributions "$CONTRIBUTIONS_JSON_FILE" "$FM_LANDED_JQ_DEFS"'
+    --slurpfile tasks "$2" --slurpfile contributions "$CONTRIBUTIONS_JSON_FILE" \
+    --slurpfile answers "$3" "$FM_LANDED_JQ_DEFS"'
     ($backlog[0]) as $backlog
     | ($tasks[0]) as $tasks
     | def trunc($n):
@@ -987,6 +1000,8 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
       | if ($filed | type) != "string" then null
         elif ($filed | test("T")) then try ($filed | fromdateiso8601) catch null
         else try (($filed + "T00:00:00Z") | fromdateiso8601) catch null end;
+    def project_name:
+      (.project // "") | sub("/+$"; "") | if . == "" then null else (split("/") | last) end;
     def newest_filed_first:
       to_entries
       | sort_by((.value | filed_epoch) as $epoch
@@ -1005,6 +1020,9 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
          | select(.captain_actionable == true)
          | {id,key:.id,verb:"captain-hold",summary:(.title | trunc(160)),
             reason:(.hold_reason | trunc(160)),
+            project:((.repo // null) | if . == null then null else trunc(120) end),
+            options:(.options // []),
+            question_fingerprint:(.question_fingerprint // null),
             hold_until:(.hold_until // null),
             hold_bucket:(.hold_bucket // null),
             hold_age_days:(.hold_age_days // null),source:"backlog"} ]) as $captain_holds_all
@@ -1060,7 +1078,19 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
             doing:((.current_state.detail // "") | trunc(120))} ]) as $active_all
     | ($captain_holds_all
        + ([ $tasks[] as $t | ($t.hints.open_decisions // [])[]
-            | {id:$t.id,key,verb,summary:(.summary | trunc(160)),reason:null,source:"status"} ])) as $decisions_all
+            | {id:$t.id,key,verb,summary:(.summary | trunc(160)),reason:null,
+               project:($t | project_name),options:[],question_fingerprint:null,source:"status"} ])) as $decisions_all
+    | ([ $tasks[] as $t
+         | ([ $backlog.records[]? | select(.structured and .id == $t.id) ] | .[0]) as $work
+         | {name:((($work.title // null) // $t.id) | trunc(70)),
+            kind:(if $t.kind == "secondmate" then "secondmate" else "crewmate" end),
+            task_id:$t.id,
+            project:((($work.repo // null) // ($t | project_name)) | if . == null then null else trunc(120) end),
+            model:(($t.model // null) | if . == null then null else trunc(80) end),
+            state:(($t.current_state.state // "unknown") as $s
+              | if (["working","parked","done","blocked","paused","failed"] | index($s)) != null then $s else "unknown" end),
+            since:(($t.paths.status_log.last_event.age_seconds // null) as $age
+              | if $age == null then null else (($generated_epoch - $age) | todate) end)} ]) as $fleet_all
     | ([ $queued_all[]
          | select((.unresolved_blocker_ids | length) > 0 or (.hold_reason != null and .hold_kind != null))
          | {id:(.id | trunc(120)),title:(.title | trunc(90)),
@@ -1101,7 +1131,9 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
         schema:"fm-secondmate-home-summary.v1",
         hold_classifier_schema:"fm-captain-hold-buckets.v1",
         contributions:$contributions[0],
+        answers_channel_schema:"fm-captain-answer-drop.v1",
         generated:$generated,
+        generated_at:$generated,
         generated_epoch:$generated_epoch,
         home:$home,
         valid:$valid,
@@ -1109,7 +1141,10 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
         invalidity:$invalidity,
         state:$state,
         active_children:$active_all[:$child_n],
+        fleet:$fleet_all[:$child_n],
         decisions_open:$decisions_all[:$decisions_n],
+        answers_inbox:($answers[0].answers_inbox // null),
+        answers_seen:($answers[0].answers_seen // []),
         holds:$holds_all[:$queued_n],
         queued:([$queued_all[] | {id:(.id | trunc(120)),title:(.title | trunc(120)),
           blocked_by:((.blocked_by // null) | if . == null then null else trunc(120) end),
@@ -1133,6 +1168,7 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
           endpoint:(.endpoint + {target:((.endpoint.target // null) | if . == null then null else trunc(240) end)})}][:$child_n]),
         counts:{
           active_children:($active_all | length),
+          fleet:($fleet_all | length),
           decisions_open:($decisions_all | length),
           holds:($holds_all | length),
           queued:($queued_all | length),
@@ -1141,6 +1177,7 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file>
         },
         omitted:[
           (if ($active_all | length) > $child_n then {surface:"active_children",count:(($active_all | length) - $child_n)} else empty end),
+          (if ($fleet_all | length) > $child_n then {surface:"fleet",count:(($fleet_all | length) - $child_n)} else empty end),
           (if ($decisions_all | length) > $decisions_n then {surface:"decisions_open",count:(($decisions_all | length) - $decisions_n)} else empty end),
           (if ($queued_all | length) > $queued_n then {surface:"queued",count:(($queued_all | length) - $queued_n)} else empty end),
           (if ($tasks | length) > $child_n then {surface:"endpoints",count:(($tasks | length) - $child_n)} else empty end),
@@ -1972,7 +2009,42 @@ scout_report_lines() {
     | jq -s 'sort_by(.id)'
 }
 
+# Structured-answer fields for every open captain hold, computed once here so
+# the home summary and the answer-drop adapter (which reads --contribution-input)
+# see the same values. question_fingerprint is the lowercase hex SHA-256 of the
+# hold reason's exact UTF-8 bytes as parsed above (trimmed, untruncated, no
+# trailing newline). options come from data/captain-hold-options/<id>.json only
+# when its hold_set matches this lifecycle's stamp, else [].
+sha256_stdin() {
+  if command -v shasum >/dev/null 2>&1; then shasum -a 256 | awk '{print $1}'
+  elif command -v sha256sum >/dev/null 2>&1; then sha256sum | awk '{print $1}'
+  else return 1; fi
+}
+backlog_answer_fields() {  # <backlog-json>
+  local json=$1 id fp doc file fps='{}' opts='{}'
+  local open_hold='.structured and .hold_kind == "captain" and .state != "done" and .hold_reason != null'
+  while IFS= read -r id; do
+    [ -n "$id" ] || continue
+    fp=$(printf '%s' "$json" | jq -j --arg id "$id" \
+      "first(.records[] | select($open_hold and .id == \$id) | .hold_reason)" | sha256_stdin) || return 1
+    fps=$(jq -cn --argjson m "$fps" --arg id "$id" --arg fp "$fp" '$m + {($id):$fp}') || return 1
+    file="$DATA/captain-hold-options/$id.json"
+    [ -f "$file" ] && [ ! -L "$file" ] || continue
+    doc=$(jq -c 'select(type == "object" and (.hold_set | type) == "string" and (.options | type) == "array")
+      | {hold_set,options:[.options[] | select(type == "object" and (.key | type) == "string" and (.label | type) == "string") | {key,label}]}' \
+      "$file" 2>/dev/null) || doc=
+    [ -n "$doc" ] || continue
+    opts=$(jq -cn --argjson m "$opts" --arg id "$id" --argjson d "$doc" '$m + {($id):$d}') || return 1
+  done < <(printf '%s' "$json" | jq -r "[.records[]? | select($open_hold) | .id] | unique | .[]")
+  printf '%s' "$json" | jq --argjson fps "$fps" --argjson opts "$opts" "
+    .records |= map(if ($open_hold) and \$fps[.id] != null then
+      . + {question_fingerprint:\$fps[.id],
+           options:(if \$opts[.id] != null and \$opts[.id].hold_set == .hold_set then \$opts[.id].options else [] end)}
+      else . end)"
+}
+
 BACKLOG_JSON=$(backlog_json) || { echo "fm-fleet-snapshot: backlog read failed" >&2; exit 1; }
+BACKLOG_JSON=$(backlog_answer_fields "$BACKLOG_JSON") || { echo "fm-fleet-snapshot: captain-hold answer fields failed" >&2; exit 1; }
 contribution_tasks_json() {
   local meta id merge_authority
   for meta in "$STATE"/*.meta; do
@@ -2022,7 +2094,14 @@ FM_CONTRIBUTIONS_NOW="$SNAPSHOT_NOW" "$SCRIPT_DIR/fm-contributions.sh" snapshot 
   || { echo "fm-fleet-snapshot: contribution coverage unavailable" >&2; exit 1; }
 
 if [ "$OUTPUT_MODE" = secondmate-home-summary ]; then
-  secondmate_home_summary_json "$BACKLOG_JSON_FILE" "$TASKS_JSON_FILE" \
+  ANSWER_DROP_JSON_FILE="$JSON_TRANSPORT_DIR/answer-drop.json"
+  # The adapter owns the drop folder and its seen ledger; an unavailable read
+  # publishes a null inbox rather than failing the whole summary.
+  FM_HOME="$FM_HOME" FM_STATE_OVERRIDE="$STATE" \
+    "$SCRIPT_DIR/fm-procevent-answer-drop.sh" summary > "$ANSWER_DROP_JSON_FILE" 2>/dev/null \
+    && jq -e 'type == "object"' "$ANSWER_DROP_JSON_FILE" >/dev/null 2>&1 \
+    || printf '{"answers_inbox":null,"answers_seen":[]}\n' > "$ANSWER_DROP_JSON_FILE"
+  secondmate_home_summary_json "$BACKLOG_JSON_FILE" "$TASKS_JSON_FILE" "$ANSWER_DROP_JSON_FILE" \
     || { echo "fm-fleet-snapshot: secondmate home summary failed" >&2; exit 1; }
   exit 0
 fi

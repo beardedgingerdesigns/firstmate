@@ -78,6 +78,7 @@ Each effective `FM_HOME` contains private operational directories.
 - Project and secondmate registries.
 - Captain preferences and optional shared captain preferences.
 - Learnings, backlog, briefs, and scout reports.
+- Structured answer options for captain holds under `data/captain-hold-options/` (`bin/fm-captain-hold.sh`).
 - Explicitly installed content-addressed extension packages under `data/extensions/packages/`.
 
 `state/` holds runtime records:
@@ -91,6 +92,7 @@ Each effective `FM_HOME` contains private operational directories.
 - Private secondmate config-reread generations with their retry and quarantine state.
 - Per-task steering-inbox records under `state/<id>.inbox/` (`bin/fm-task-inbox-lib.sh`).
 - Parent-owned secondmate pending-reply records under `state/pending-replies/` (`bin/fm-pending-reply-lib.sh`).
+- The captain-answer drop folder `state/answer-drop/` and its outcome ledger `state/answer-drop.seen.jsonl` (`bin/fm-procevent-answer-drop.sh`).
 
 `config/` holds local gitignored operating choices, including explicit extension bindings under `config/extensions.d/`.
 
@@ -1911,6 +1913,15 @@ A repo update that fast-forwards an in-repo action's bytes in place would otherw
 
 Every failure path - a mutated spec or action executable, a condition error past its budget, an expired deadline, a failed action, or an earlier fire whose outcome was never captured - produces a terminal captured outcome that wakes firstmate rather than a silent retry, and a durable single-fire marker claimed before the action makes restarts and re-polls unable to fire it twice.
 The adapter automates only the exact deterministic subset: anything needing judgment, and anything destructive, irreversible, or security-sensitive, keeps the ordinary check-fires-then-firstmate-decides flow, and the adapter's header and `--help` own its commands, flags, and outcome document.
+
+**Answer captain holds from a local structured channel**
+
+The `answer-drop` adapter (`bin/fm-procevent-answer-drop.sh`) lets a local reader of `state/home-summary.json`, such as aios-ui, answer an open captain hold without running Firstmate scripts or writing any other Firstmate file.
+The summary publishes the drop folder as `answers_inbox`, each answerable decision's `options` and `question_fingerprint`, and recent outcomes as `answers_seen`; the [`bin/fm-fleet-snapshot.sh --help`](../bin/fm-fleet-snapshot.sh) text owns those fields and the fingerprint definition.
+The writer renames one complete JSON file per answer into that folder, and the adapter header owns the file contract and every outcome reason.
+The source registers itself the first time a summary refresh finds an answer waiting, and `arm` registers it at once; from then on its listener polls the folder and stays armed.
+Each answer is validated, checked against the hold's current fingerprint, fed to `bin/fm-captain-hold.sh answers --source aios-ui`, and archived under `handled/` or `rejected/`, so a file is never deleted and replay after a restart is idempotent.
+Every captured round still publishes an ordinary `check` wake before it is applied, so Firstmate acts on the recorded decision as it would on any other channel's answer.
 
 **Capture and publish results**
 

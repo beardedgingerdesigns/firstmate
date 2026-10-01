@@ -21,7 +21,8 @@
 #
 # Usage:
 #   fm-captain-hold.sh hold <task-id> --reason <reason> \
-#     [--title <title>] [--repo <repo>] [--origin <origin-id>] [--until YYYY-MM-DD]
+#     [--title <title>] [--repo <repo>] [--origin <origin-id>] [--until YYYY-MM-DD] \
+#     [--option <key>=<label>]...
 #   fm-captain-hold.sh answer <task-id> --decision-file <path> [--release]
 #   fm-captain-hold.sh answers [<legacy-origin> | --any-origin] --source <provenance>   (keyed answers on stdin)
 #   fm-captain-hold.sh reconcile-requests --source-id <source-id> --source <provenance>   (task ids on stdin)
@@ -52,6 +53,14 @@
 # `--until` records the captain's own deferral date through `tasks-axi hold
 # --until`, so a "revisit later" answer is stored as a date instead of a live
 # card.
+# Each repeatable `--option <key>=<label>` declares one structured answer choice
+# (key: a slug of at most 64 characters other than `reconcile`; label: one line
+# of at most 200 characters). The set is written to
+# data/captain-hold-options/<task-id>.json beside this lifecycle's hold-set
+# stamp, so a released and re-held task never inherits stale choices; omitting
+# --option leaves any options already recorded for the active lifecycle as they
+# are. Free-text-only holds simply carry no options. The home summary publishes
+# them for structured answer channels (docs/captain-hold-lifecycle.md).
 #
 # `answer` records the captain's exact words and resolves the call in the same
 # act. It requires a non-empty captain decision file of at most 8192 bytes and
@@ -810,9 +819,25 @@ verify_entry_durable() {  # <origin-or-empty> <entry>; prints "<id> <how>"
   verify_hold_durable "${resolved%% *}"
 }
 
+# Record one hold lifecycle's structured answer options atomically. The stamp
+# binds them to this lifecycle; readers ignore a file whose stamp differs.
+write_hold_options() {  # <task-id> <hold-set-stamp> <key-TAB-label lines>
+  local dir="$DATA/captain-hold-options" tmp
+  (umask 077; mkdir -p "$dir") || return 1
+  tmp=$(umask 077; mktemp "$dir/.$1.XXXXXX") || return 1
+  if printf '%s' "$3" | jq -R -s --arg hold_set "$2" '
+      {schema:"fm-captain-hold-options.v1",hold_set:$hold_set,
+       options:[splits("\n") | select(length > 0) | split("\t") | {key:.[0],label:.[1]}]}' > "$tmp" \
+    && mv -f -- "$tmp" "$dir/$1.json"; then
+    return 0
+  fi
+  rm -f -- "$tmp"
+  return 1
+}
+
 command_hold() {
   local id=${1:-} title='' reason='' repo='' origin='' until='' show state existing_title body='' hold_kind hold_set occurrence
-  local existing_hold_kind='' existing_held='' preserve_hold_set=0
+  local existing_hold_kind='' existing_held='' preserve_hold_set=0 options_tsv='' option_key option_label tab=$'\t'
   [ "$#" -ge 1 ] || { usage >&2; exit 2; }
   shift
   while [ "$#" -gt 0 ]; do
@@ -822,6 +847,22 @@ command_hold() {
       --repo) shift; repo=${1:-} ;;
       --origin) shift; origin=${1:-} ;;
       --until) shift; until=${1:-} ;;
+      --option)
+        shift
+        case "${1:-}" in *=*) : ;; *) fail "--option must be <key>=<label>: ${1:-}" ;; esac
+        option_key=${1%%=*}
+        option_label=${1#*=}
+        validate_slug option-key "$option_key"
+        [ "${#option_key}" -le 64 ] || fail "option key must be at most 64 characters: $option_key"
+        [ "$option_key" != reconcile ] || fail "option key reconcile is reserved by the keyed-answer intake"
+        validate_one_line option-label "$option_label"
+        case "$option_label" in *"$tab"*) fail "option label must not contain a tab" ;; esac
+        [ "${#option_label}" -le 200 ] || fail "option label must be at most 200 characters"
+        case "$tab$(printf '%s' "$options_tsv" | cut -f1 | tr '\n' '\t')" in
+          *"$tab$option_key$tab"*) fail "duplicate option key: $option_key" ;;
+        esac
+        options_tsv="$options_tsv$option_key$tab$option_label"$'\n'
+        ;;
       *) usage >&2; exit 2 ;;
     esac
     shift
@@ -901,8 +942,12 @@ command_hold() {
   hold_kind=$(show_field_value "$show" hold_kind)
   [ "$hold_kind" = captain ] || fail "task $id did not retain its captain hold"
   occurrence=$(( $(resolution_record_count "$(show_field "$show" body)") + 1 ))
-  [ -n "$(body_hold_set_timestamp "$(show_field_value "$show" body)")" ] \
-    || fail "task $id lost its hold-set stamp while being held"
+  hold_set=$(body_hold_set_timestamp "$(show_field_value "$show" body)")
+  [ -n "$hold_set" ] || fail "task $id lost its hold-set stamp while being held"
+  if [ -n "$options_tsv" ]; then
+    write_hold_options "$id" "$hold_set" "$options_tsv" \
+      || fail "task $id is held for the captain but its answer options could not be recorded"
+  fi
   publish_parent_hold "$id" "$occurrence" needs-decision "$reason"
   printf '%s\n' "$id"
 }

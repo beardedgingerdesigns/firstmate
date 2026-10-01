@@ -1,0 +1,14 @@
+$ fm-captain-hold.sh hold q-db --reason "Postgres or SQLite?" --repo demo --option pg=Postgres --option lite=SQLite
+q-db
+$ fm-captain-hold.sh hold q-name --reason "What should we call the service?"   (free-text only)
+q-name
+$ fm-captain-hold.sh hold q-long --reason "<241-char question>"
+q-long
+$ fm-captain-hold.sh hold q-dup --option a=A --option a=B
+fm-captain-hold: duplicate option key: a
+exit=1
+$ fm-captain-hold.sh hold q-res --option reconcile=Recheck
+fm-captain-hold: option key reconcile is reserved by the keyed-answer intake
+exit=1
+$ fm-home-summary-refresh.sh
+exit=0

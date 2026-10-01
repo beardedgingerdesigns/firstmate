@@ -1,0 +1,39 @@
+$ fm-procevent-answer-drop.sh read state/procevent-inbox/answer-drop.1.result   (what the woken handler runs)
+q-db-1790892527683.json	resolved		q-db
+q-db-1790892528170.json	rejected	unknown-option	q-db
+q-long-1790892527804.json	resolved		q-long
+q-name-1790892527928.json	rejected	question-changed	q-name
+q-name-1790892528044.json	rejected	malformed	q-name
+
+== seen ledger: each file passes picked_up before resolved ==
+{"file":"q-db-1790892527683.json","status":"picked_up","reason":null,"line":{"answer":"pg; note: ship it","label":"Postgres","mode":""}}
+{"file":"q-db-1790892527683.json","status":"resolved","reason":null,"line":null}
+{"file":"q-db-1790892528170.json","status":"rejected","reason":"unknown-option","line":null}
+{"file":"q-long-1790892527804.json","status":"picked_up","reason":null,"line":{"answer":"Stop after three attempts and page on-call","label":"","mode":""}}
+{"file":"q-long-1790892527804.json","status":"resolved","reason":null,"line":null}
+{"file":"q-name-1790892527928.json","status":"rejected","reason":"question-changed","line":null}
+{"file":"q-name-1790892528044.json","status":"rejected","reason":"malformed","line":null}
+
+== tasks-axi show q-db (recorded answer) ==
+task:
+  id: q-db
+  title: Pick a database
+  state: done
+  blocked: no
+  blocked_by: none
+  held: no
+  hold_reason: Postgres or SQLite?
+  hold_kind: captain
+  hold_until: "-"
+  kind: captain
+  repo: demo
+  priority: "-"
+  created: "-"
+  closed: 2026-10-01
+  deps: none
+  links: none
+  body: "Resolution recorded by fm-captain-hold.\nDecision digest: 13d3c5d8aa3afadbb44bb00c6d41fa12537189ce990907afea451b538f0b9cdd\nResolution mode: answered\n\nCaptain decision:\nCaptain answered this call through aios-ui.\nTask: q-db\nAnswer: pg; note: ship it\nAnswer as shown to the captain: Postgres"
+
+== tasks-axi show q-long ==
+  state: done
+  body: "Resolution recorded by fm-captain-hold.\nDecision digest: 2670683270fc1d19b3d6c765626647a0e37b5ef7bedf9d2cfb08c254e8365102\nResolution mode: answered\n\nCaptain decision:\nCaptain answered this call through aios-ui.\nTask: q-long\nAnswer: Stop after three attempts and page on-call"

@@ -1,0 +1,8 @@
+$ fm-procevent-answer-drop.sh retire
+retired: answer-drop
+exit=0
+runner processes left for this lab: 0
+
+== diff touches any claude-os path? ==
+none (all 10 changed files are under firstmate bin/ docs/ tests/ .agents/)
+169:+# A local structured answer channel (aios-ui, claude-os ADR 0012) answers an

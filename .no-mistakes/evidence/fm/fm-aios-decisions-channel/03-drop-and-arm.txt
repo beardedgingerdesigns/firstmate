@@ -1,0 +1,26 @@
+== aios-ui writer drops answers (temp file + rename), reading only home-summary.json ==
+q-db option pg + note:   q-db-1790892527683.json
+q-long free text:        q-long-1790892527804.json
+q-name stale fingerprint: q-name-1790892527928.json
+q-name malformed bytes:  q-name-1790892528044.json
+q-db unknown option zz:  q-db-1790892528170.json
+left a half-written dotfile: .q-name-inflight.tmp
+
+== inbox ==
+.q-name-inflight.tmp
+q-db-1790892527683.json
+q-db-1790892528170.json
+q-long-1790892527804.json
+q-name-1790892527928.json
+q-name-1790892528044.json
+
+== 'sent' state: file in inbox, answers_seen still empty, source not yet armed ==
+[]
+
+$ fm-home-summary-refresh.sh   (arms the source on first waiting answer)
+exit=0
+adapter=answer-drop
+argc=2
+argv:
+/Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3WQGDGZ4H6BNA0TDBGZ9Q0E/bin/fm-procevent-answer-drop.sh
+poll

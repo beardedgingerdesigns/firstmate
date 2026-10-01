@@ -1,0 +1,8 @@
+q-spoof
+q-other
+dropped: q-spoof-1.json (body names q-other), q-spoof-2.json (source=chat), q-spoof-3.json (symlink)
+{"file":"q-spoof-2.json","hold_id":"q-spoof","status":"rejected","reason":"malformed"}
+{"file":"q-spoof-1.json","hold_id":"q-spoof","status":"rejected","reason":"malformed"}
+{"file":"w-gate-1790892587133.json","hold_id":"w-gate","status":"resolved","reason":null}
+symlink still in place, never read: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.zzmmN0/state/answer-drop/q-spoof-3.json -> /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.zzmmN0/outside.json
+decisions still open: ["q-spoof","q-other"]

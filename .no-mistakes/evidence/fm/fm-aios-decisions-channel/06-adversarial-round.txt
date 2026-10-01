@@ -1,0 +1,39 @@
+== setup ==
+q-name fingerprint shown earlier: e2f9420c04d87f5c2e5c3b023d18eedb8e9332209a61f681080d430ed8dca27e
+q-name
+q-chat
+w-gate
+q-name fingerprint now:          2483a70dc6bcacdc8313a3341fc09e887375fdedad995b2d0bf0de3b5e4f72b8
+
+== captain answers q-chat through chat first (fm-captain-hold.sh answer) ==
+answered: q-chat
+
+== aios-ui drops ==
+q-name with OLD fingerprint (screen shown before reword): q-name-1790892586701.json
+q-name with CURRENT fingerprint: q-name-1790892586800.json
+q-chat from the screen rendered before chat answered: q-chat-1790892586892.json
+q-db second answer (already resolved via aios-ui): q-db-1790892586995.json
+w-gate (held work item) option yes: w-gate-1790892587133.json
+
+== answers_seen (newest first, from published home-summary.json) ==
+{"file":"w-gate-1790892587133.json","hold_id":"w-gate","status":"resolved","reason":null}
+{"file":"q-name-1790892586800.json","hold_id":"q-name","status":"resolved","reason":null}
+{"file":"q-name-1790892586701.json","hold_id":"q-name","status":"rejected","reason":"question-changed"}
+{"file":"q-db-1790892586995.json","hold_id":"q-db","status":"rejected","reason":"already-answered"}
+{"file":"q-chat-1790892586892.json","hold_id":"q-chat","status":"rejected","reason":"already-answered"}
+
+== w-gate after answer (release mode chosen by FirstMate) ==
+  state: queued
+  held: no
+  body: "Resolution recorded by fm-captain-hold.\nDecision digest: 78ae59388466ac82c6d704f86586d6215b19b549aadd3f549f26a40c206eac90\nResolution mode: released\n\nCaptain decision:\nCaptain answered this call through aios-ui.\nTask: w-gate\nAnswer: yes\nAnswer as shown to the captain: Merge"
+
+== q-chat: only one recorded resolution (chat) ==
+Resolution recorded by fm-captain-hold
+
+== wake queue ==
+1790892538	1	check	procevent:answer-drop:1	check: procevent answer-drop answer-drop 1
+1790892587	2	check	procevent:answer-drop:2	check: procevent answer-drop answer-drop 2
+1790892594	3	check	procevent:answer-drop:3	check: procevent answer-drop answer-drop 3
+
+== decisions_open now ==
+[]

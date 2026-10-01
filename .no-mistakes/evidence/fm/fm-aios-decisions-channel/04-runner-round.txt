@@ -1,0 +1,67 @@
+$ fm-procevent.sh reconcile   (the watcher cycle starts the registered listener)
+reconciled: published=0 started=1 stopped=0 uncertain=0 failed=0
+exit=0
+
+== inbox after round ==
+.q-name-inflight.tmp
+handled
+rejected
+
+/private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.zzmmN0/state/answer-drop/handled:
+q-db-1790892527683.json
+q-long-1790892527804.json
+
+/private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.zzmmN0/state/answer-drop/rejected:
+q-db-1790892528170.json
+q-name-1790892527928.json
+q-name-1790892528044.json
+
+== published state/home-summary.json answers_seen (aios-ui read-back) ==
+[
+  {
+    "file": "q-name-1790892528044.json",
+    "hold_id": "q-name",
+    "status": "rejected",
+    "reason": "malformed",
+    "at": "2026-10-01T22:09:08Z"
+  },
+  {
+    "file": "q-name-1790892527928.json",
+    "hold_id": "q-name",
+    "status": "rejected",
+    "reason": "question-changed",
+    "at": "2026-10-01T22:09:08Z"
+  },
+  {
+    "file": "q-long-1790892527804.json",
+    "hold_id": "q-long",
+    "status": "resolved",
+    "reason": null,
+    "at": "2026-10-01T22:09:08Z"
+  },
+  {
+    "file": "q-db-1790892528170.json",
+    "hold_id": "q-db",
+    "status": "rejected",
+    "reason": "unknown-option",
+    "at": "2026-10-01T22:09:03Z"
+  },
+  {
+    "file": "q-db-1790892527683.json",
+    "hold_id": "q-db",
+    "status": "resolved",
+    "reason": null,
+    "at": "2026-10-01T22:09:03Z"
+  }
+]
+
+== remaining decisions_open ids ==
+["q-name"]
+
+== wake queue ==
+1790892538	1	check	procevent:answer-drop:1	check: procevent answer-drop answer-drop 1
+
+== procevent inbox ==
+answer-drop.1.adapter
+answer-drop.1.handled
+answer-drop.1.result

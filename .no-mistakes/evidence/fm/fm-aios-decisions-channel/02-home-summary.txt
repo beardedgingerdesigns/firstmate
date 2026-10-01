@@ -1,0 +1,65 @@
+== state/home-summary.json (ADR 0012 §2 fields) ==
+{
+  "schema": "fm-secondmate-home-summary.v1",
+  "generated": "2026-10-01T22:07:53Z",
+  "generated_at": "2026-10-01T22:07:53Z",
+  "answers_inbox": "/private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.zzmmN0/state/answer-drop",
+  "answers_seen": [],
+  "fleet": [
+    {
+      "name": "w1",
+      "kind": "crewmate",
+      "task_id": "w1",
+      "project": "widget",
+      "model": "opus-test",
+      "state": "unknown",
+      "since": "2026-10-01T22:05:53Z"
+    }
+  ],
+  "decisions_open": [
+    {
+      "id": "q-db",
+      "project": "demo",
+      "options": [
+        {
+          "key": "pg",
+          "label": "Postgres"
+        },
+        {
+          "key": "lite",
+          "label": "SQLite"
+        }
+      ],
+      "reason": "Postgres or SQLite?",
+      "question": "Postgres or SQLite?",
+      "question_fingerprint": "40053640c1b7d43c895c9bb049e78e3f92ca162f0d23994ded59469d94e53d91"
+    },
+    {
+      "id": "q-name",
+      "project": "firstmate",
+      "options": [],
+      "reason": "What should we call the service?",
+      "question": "What should we call the service?",
+      "question_fingerprint": "e2f9420c04d87f5c2e5c3b023d18eedb8e9332209a61f681080d430ed8dca27e"
+    },
+    {
+      "id": "q-long",
+      "project": "firstmate",
+      "options": [],
+      "reason": "Should the importer keep retrying failed rows every five minutes for the whole night, or stop after three attempts and page someone, given that the upstream ven…",
+      "question": "Should the importer keep retrying failed rows every five minutes for the whole night, or stop after three attempts and page someone, given that the upstream vendor API rate-limits us at 100 req/min and the nightly window closes at 06:00 UTC?",
+      "question_fingerprint": "1de73f5e2371540e410de0cc8c88272a15fd4b159cc11582ccca66d7a857a7fb"
+    }
+  ]
+}
+== has answers_channel_schema field? (must be false per review decision) ==
+false
+== independent sha256 of hold texts ==
+40053640c1b7d43c895c9bb049e78e3f92ca162f0d23994ded59469d94e53d91  -
+1de73f5e2371540e410de0cc8c88272a15fd4b159cc11582ccca66d7a857a7fb  -
+== q-long: question == full hold text? reason length vs question length ==
+true reason=161 question=241
+== answers_inbox exists and is a directory ==
+drwx------@ 2 justinlobaito  staff  64 Oct  1 17:07 /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.zzmmN0/state/answer-drop
+== source registered before any answer? ==
+ls: /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.zzmmN0/state/procevent-sources: No such file or directory

@@ -1917,7 +1917,7 @@ The adapter automates only the exact deterministic subset: anything needing judg
 **Answer captain holds from a local structured channel**
 
 The `answer-drop` adapter (`bin/fm-procevent-answer-drop.sh`) lets a local reader of `state/home-summary.json`, such as aios-ui, answer an open captain hold without running Firstmate scripts or writing any other Firstmate file.
-The summary publishes the drop folder as `answers_inbox`, each answerable decision's `options` and `question_fingerprint`, and recent outcomes as `answers_seen`; the [`bin/fm-fleet-snapshot.sh --help`](../bin/fm-fleet-snapshot.sh) text owns those fields and the fingerprint definition.
+The summary publishes the drop folder as `answers_inbox`, each answerable decision's `options`, full `question` text, and its `question_fingerprint`, and recent outcomes as `answers_seen`; the [`bin/fm-fleet-snapshot.sh --help`](../bin/fm-fleet-snapshot.sh) text owns those fields and the fingerprint definition.
 The writer renames one complete JSON file per answer into that folder, and the adapter header owns the file contract and every outcome reason.
 The source registers itself the first time a summary refresh finds an answer waiting, and `arm` registers it at once; from then on its listener polls the folder and stays armed.
 Each answer is validated, checked against the hold's current fingerprint, fed to `bin/fm-captain-hold.sh answers --source aios-ui`, and archived under `handled/` or `rejected/`, so a file is never deleted and replay after a restart is idempotent.

@@ -253,16 +253,17 @@ Actionable tasks-axi captain holds appear as decisions_open and stay visible in
 queued with hold_reason, hold_kind, hold_until,
 hold_bucket, hold_age_days, and plural blocker fields for downstream
 projections. Each decisions_open entry also carries project, options (the
-hold's {key,label} choices from fm-captain-hold.sh hold --option, else []), and
-question_fingerprint: the lowercase hex SHA-256 of the hold reason's exact
-UTF-8 bytes as the backlog row stores it (whitespace-trimmed, untruncated, no
-trailing newline), or null for a status-log decision, which the answer drop
-cannot answer. The summary also carries generated_at (equal to generated),
+hold's {key,label} choices from fm-captain-hold.sh hold --option, else []),
+question (the hold reason's full untruncated text, unlike the clipped reason),
+and question_fingerprint: the lowercase hex SHA-256 of question's exact UTF-8
+bytes (whitespace-trimmed, no trailing newline). Both are null for a
+status-log decision, which the answer drop cannot answer. The summary also
+carries generated_at (equal to generated),
 fleet[] {name,kind crewmate|secondmate,task_id,project,model,state
 working|parked|done|blocked|paused|failed|unknown,since (time of the last
 status event)} bounded like active_children, answers_inbox (the absolute drop
 folder, or null when unavailable), and answers_seen (bin/fm-procevent-answer-drop.sh
-summary), all versioned by answers_channel_schema fm-captain-answer-drop.v1. A captain hold is actionable only when every blocker is Done, any
+summary). A captain hold is actionable only when every blocker is Done, any
 hold-until date has arrived, and an undated hold remains below the aging threshold.
 Cross-home collection uses FM_SNAPSHOT_SECONDMATES (default 20, 0 lifts the
 count bound) and FM_SNAPSHOT_SECONDMATE_MAX_BYTES.
@@ -1022,6 +1023,7 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answe
             reason:(.hold_reason | trunc(160)),
             project:((.repo // null) | if . == null then null else trunc(120) end),
             options:(.options // []),
+            question:(.hold_reason // null),
             question_fingerprint:(.question_fingerprint // null),
             hold_until:(.hold_until // null),
             hold_bucket:(.hold_bucket // null),
@@ -1079,7 +1081,7 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answe
     | ($captain_holds_all
        + ([ $tasks[] as $t | ($t.hints.open_decisions // [])[]
             | {id:$t.id,key,verb,summary:(.summary | trunc(160)),reason:null,
-               project:($t | project_name),options:[],question_fingerprint:null,source:"status"} ])) as $decisions_all
+               project:($t | project_name),options:[],question:null,question_fingerprint:null,source:"status"} ])) as $decisions_all
     | ([ $tasks[] as $t
          | ([ $backlog.records[]? | select(.structured and .id == $t.id) ] | .[0]) as $work
          | {name:((($work.title // null) // $t.id) | trunc(70)),
@@ -1131,7 +1133,6 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answe
         schema:"fm-secondmate-home-summary.v1",
         hold_classifier_schema:"fm-captain-hold-buckets.v1",
         contributions:$contributions[0],
-        answers_channel_schema:"fm-captain-answer-drop.v1",
         generated:$generated,
         generated_at:$generated,
         generated_epoch:$generated_epoch,

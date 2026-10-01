@@ -75,6 +75,11 @@ assert_equals "$(decision q-db | jq -c '{project,options,question_fingerprint}')
 assert_equals "$(decision q-name | jq -c '{options,question_fingerprint}')" \
   "{\"options\":[],\"question_fingerprint\":\"$FP_NAME\"}" "free-text hold has no options"
 assert_equals "$(decision q-db | jq -r .question_fingerprint)" "$FP_DB" "fingerprint is stable across reads"
+LONG_Q="$(printf 'Should the importer keep retrying failed rows %.0s' 1 2 3 4 5)until the nightly window closes?"
+hold q-long --title "Importer retries" --reason "$LONG_Q"
+assert_equals "$(decision q-long | jq -r '.question')" "$LONG_Q" "question carries the full untruncated hold text"
+assert_equals "$(decision q-long | jq -r '.question_fingerprint')" "$(sha "$LONG_Q")" "question_fingerprint hashes question"
+assert_equals "$(decision q-long | jq -r '.reason | length < ($q | length)' --arg q "$LONG_Q")" true "reason stays clipped"
 rm -f "$HOME_DIR/state/w1.meta" "$HOME_DIR/state/w1.status"
 pass "home summary publishes generated_at, fleet, options, fingerprints, and the drop folder"
 

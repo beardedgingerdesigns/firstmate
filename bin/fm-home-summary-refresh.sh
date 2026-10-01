@@ -8,9 +8,8 @@
 # Its schema remains `fm-secondmate-home-summary.v1`, declares the current hold
 # classifier contract, and includes both the existing generated timestamp and
 # generated_epoch for freshness arithmetic. Additive structured-answer fields
-# (generated_at, fleet, per-decision options and question_fingerprint,
-# answers_inbox, answers_seen) are versioned by answers_channel_schema
-# `fm-captain-answer-drop.v1`; bin/fm-fleet-snapshot.sh --help owns their shape.
+# (generated_at, fleet, per-decision options, question, and question_fingerprint,
+# answers_inbox, answers_seen) are owned by bin/fm-fleet-snapshot.sh --help.
 # After a successful publication the refresh arms the answer-drop source when an
 # answer is already waiting (bin/fm-procevent-answer-drop.sh arm --if-pending).
 #
@@ -168,7 +167,6 @@ home_summary_refresh_once() {
     and (.invalidity | type) == "object"
     and (.active_children | type) == "array"
     and .generated_at == .generated
-    and .answers_channel_schema == "fm-captain-answer-drop.v1"
     and (.fleet | type) == "array"
     and (.answers_inbox == null or (.answers_inbox | type) == "string")
     and (.answers_seen | type) == "array"

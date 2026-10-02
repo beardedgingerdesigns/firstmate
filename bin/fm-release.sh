@@ -15,7 +15,8 @@
 #   waiting         changes merged to the work branch and not yet in production
 #   last_deploy     {env:"staging"|"production", result:"ok"|"failed", at:<UTC>}
 #   card            the task id of the newest release call (written by `card`)
-#   card_sha        the staging commit that call pins (written by `card`)
+#   pinned          {<call id>: <commit>} for the 10 newest release calls, the
+#                   staging commit each call showed (written by `card`)
 #   updated         UTC time of the last write
 # Omitted flags keep their stored value. --deploy and --result go together and
 # stamp last_deploy.at with the current time. The write is atomic (temporary
@@ -26,11 +27,12 @@
 # waiting, staging <url> at <short-sha>", with the answer options send and
 # not-yet, through bin/fm-captain-hold.sh hold. It reads <n>, the staging link,
 # and staging_sha from the record, refuses when nothing is waiting or no
-# staging link or commit is recorded, and pins staging_sha as `card_sha`.
+# staging link or commit is recorded, and pins staging_sha to the call's id in
+# `pinned`. A later call never rewrites another call's entry.
 # While the project's previous call is still open it re-holds that same task,
 # so the wording follows the current count and commit and a stale answer is
-# refused by its question fingerprint; when the commit differs from the one the
-# call pinned before, the wording adds "staging moved from <old-short-sha>".
+# refused by its question fingerprint; its pin moves together with its wording,
+# which adds "staging moved from <old-short-sha>" when the commit changed.
 # An open call whose hold is at least FM_SNAPSHOT_UNDATED_HOLD_AGE_DAYS old
 # (default 14) has aged off the Decisions page, so it is closed through
 # bin/fm-captain-hold.sh reconcile supersede, recorded as superseded and never as
@@ -38,10 +40,10 @@
 # the previous one closed, is a new release-<project>-<epoch> task stored as
 # `card`. The call then appears in decisions_open like any other hold and its
 # answer returns through the ordinary keyed-answer intake. This script never
-# deploys: after a `send` answer firstmate moves the production branch to
-# exactly the record's card_sha, the commit the answered call showed, and never
-# to a newer staging commit; it then starts that project's production job and
-# records the outcome here with --deploy production.
+# deploys: after a `send` answer on call X firstmate moves the production
+# branch to exactly pinned[X], the commit X showed, and never to a newer staging
+# commit; it then starts that project's production job and records the outcome
+# here with --deploy production.
 #
 # FM_RELEASE_NOW (UTC YYYY-MM-DDTHH:MM:SSZ) pins the clock for tests.
 set -u
@@ -129,7 +131,7 @@ command_record() {
 }
 
 command_card() {
-  local project=${1:-} rec waiting staging sha card card_sha identity age_days held_days aged='' reason moved='' epoch evidence
+  local project=${1:-} rec waiting staging sha card pin identity age_days held_days aged='' reason moved='' epoch evidence
   [ "$#" -eq 1 ] || { usage >&2; exit 2; }
   check_project "$project"
   age_days=${FM_SNAPSHOT_UNDATED_HOLD_AGE_DAYS:-14}
@@ -143,14 +145,14 @@ command_card() {
   [ -n "$sha" ] || fail "$project has no staging commit recorded"
   epoch=$(epoch_of "$NOW") || fail "cannot read the clock"
   card=$(printf '%s' "$rec" | jq -r '.card // ""')
-  card_sha=$(printf '%s' "$rec" | jq -r '.card_sha // ""')
   if [ -n "$card" ] && identity=$("$SCRIPT_DIR/fm-captain-hold.sh" open "$card" --identity 2>/dev/null); then
     held_days=$(epoch_of "${identity%%#*}") || fail "cannot read when $card was raised"
     held_days=$(( (epoch - held_days) / 86400 ))
     if [ "$held_days" -ge "$age_days" ]; then
       aged=$card
-    elif [ -n "$card_sha" ] && [ "$card_sha" != "$sha" ]; then
-      moved=", staging moved from ${card_sha:0:7}"
+    else
+      pin=$(printf '%s' "$rec" | jq -r --arg c "$card" '.pinned[$c] // ""')
+      [ -z "$pin" ] || [ "$pin" = "$sha" ] || moved=", staging moved from ${pin:0:7}"
     fi
   else
     card=''
@@ -165,7 +167,8 @@ command_card() {
     --repo "$project" --reason "$reason" --option send=Send --option not-yet="Not yet" >/dev/null \
     || fail "could not raise the release call for $project"
   write_record "$project" "$(printf '%s' "$rec" | jq -c --arg c "$card" --arg sha "$sha" --arg now "$NOW" \
-    '. + {card:$c, card_sha:$sha, updated:$now}')"
+    '. + {card:$c, updated:$now}
+     | .pinned = ((.pinned // {}) | del(.[$c]) | . + {($c): $sha} | to_entries | .[-10:] | from_entries)')"
   if [ -n "$aged" ]; then
     evidence=$(mktemp "${TMPDIR:-/tmp}/fm-release-evidence.XXXXXX") || fail "cannot stage the superseded record"
     printf 'Aged off the Decisions page after %s days unanswered; firstmate raised the release call again as %s.\n' \

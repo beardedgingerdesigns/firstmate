@@ -1660,6 +1660,7 @@ reconcile_supersede() {
   publish_parent_hold "$id" "$occurrence" resolved "superseded by $by"
   [ "$PARENT_HOLD_PUBLISHED" = 1 ] \
     || fail "could not publish the superseded captain-held task $id to its parent"
+  reconcile_request_retire "$id"
   printf 'superseded: %s\n' "$id"
 }
 

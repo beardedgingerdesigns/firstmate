@@ -308,13 +308,14 @@ A successful normal answer also retires any pending request, because an answered
 
 Every retirement is checked.
 If request removal fails after an answer, close, or note is already durable, the durable outcome stands, but the command fails and leaves the pending request visible for retry.
-No path here closes a captain call without either the captain's words through `answer` or the evidence through `reconcile close`.
+No path here closes a captain call without the captain's words through `answer`, the evidence through `reconcile close`, or an open replacement call through `reconcile supersede`.
 
 ### Superseding a call
 
 `reconcile supersede <task-id> --by <task-id> --evidence-file <path>` closes a call the invoking agent raised again under a new task id, such as a release call that aged off the Decisions page (`bin/fm-release.sh card`).
 It needs no board request, because the replacement must already be an open captain call, so the question never leaves the captain.
 It writes the same `reconciled` record with the supplied evidence under the `Reconciliation evidence:` label, so the close never reads as the captain's answer.
+It retires any pending reconcile request for the superseded call, because the replacement carries the question now.
 An exact retry is idempotent.
 
 ## Card hygiene: a landed subject is not a live call

@@ -1,0 +1,15 @@
+== drop folder diff (pick 'Fly' then /clear inside 5 s; checked 10 s later):
+(no new drop file)
+== debug log (fm-deck + session lifecycle) from 2026-10-02T21:29:10:
+2026-10-02T21:29:10.491Z [DEBUG] fm-deck (core) answered ui.press without next() in 1.1ms; nothing beneath it ran for this dispatch
+2026-10-02T21:29:10.491Z [DEBUG] ui.press fm-deck/option-2 in Pane from terminal: settled in 1.2ms
+2026-10-02T21:29:10.497Z [DEBUG] $.ui.toast (fm-deck): Sent: Fly. u to undo (5 s)
+2026-10-02T21:29:12.007Z [DEBUG] hooks module cc-plugin-telemetry@builtin session.end settled in 0.3ms (native link, next() included)
+2026-10-02T21:29:12.007Z [DEBUG] Cleared all session hooks for session c8c17a59-4ba4-4ad9-9ec8-725b08ad3f92
+2026-10-02T21:29:12.371Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nPONYTAIL MODE ACTIVE — level: full\n\n# Ponytail\n\nYou are a lazy senior developer. 
+2026-10-02T21:29:12.712Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/chrome-devtools-axi\ndescription: Agent ergonomi
+2026-10-02T21:29:12.794Z [DEBUG] $.ui.status (fm-deck): (cleared)
+2026-10-02T21:29:12.799Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\n{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"\\n
+2026-10-02T21:29:13.149Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/gh-axi\ndescription: Agent ergonomic wrapper aro
+2026-10-02T21:29:14.160Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/lavish-axi\ndescription: \"Lavish Editor helps a
+2026-10-02T21:29:15.494Z [DEBUG] $.ui.toast (fm-deck): Not sent: firstmate publishes no answer folder

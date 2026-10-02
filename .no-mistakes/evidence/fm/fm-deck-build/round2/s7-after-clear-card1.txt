@@ -1,0 +1,17 @@
+
+
+
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ● tonequest  ○ cd-a+cd-b  ○ iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ tonequest · open 2 days                                                                   │
+│ Add a "The Inside" field to issues and fill October from the doc?                         │
+│ If nothing: October ships without The Inside.                                             │
+│ sent: Add the field and fill October                                                      │
+│ [ Later… ] [ Explain ] [ Not mine ] [ Full question ]                                     │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 1 of 3 n: ▸ list from 21:43                                                          │
+│ Ready for you: PR #64 [ Open ] [ Copy link ]                                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────╯
+

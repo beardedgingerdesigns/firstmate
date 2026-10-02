@@ -1,0 +1,8 @@
+total 40
+drwxr-xr-x@ 7 justinlobaito  staff  224 Oct  2 16:46 .
+drwxr-xr-x@ 6 justinlobaito  staff  192 Oct  2 16:45 ..
+-rw-r--r--@ 1 justinlobaito  staff  199 Oct  2 16:44 cd-host-a-r2-1790977442052.json
+-rw-r--r--@ 1 justinlobaito  staff  199 Oct  2 16:44 cd-host-b-r2-1790977442084.json
+-rw-r--r--@ 1 justinlobaito  staff  214 Oct  2 16:44 isf-load-r2-1790977480010.json
+-rw-r--r--@ 1 justinlobaito  staff  218 Oct  2 16:46 isf-load-r2-1790977581332.json
+-rw-r--r--@ 1 justinlobaito  staff  199 Oct  2 16:43 tq-inside-r2-1790977416512.json

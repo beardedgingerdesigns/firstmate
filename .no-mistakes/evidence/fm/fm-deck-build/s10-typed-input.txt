@@ -1,0 +1,39 @@
+ ▐▛███▛█   Claude Code v2.1.288
+▝▜██████▀  Haiku 4.5 · Claude Max
+ ▝▝   ▝▝   /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/project
+
+▎ Debug mode enabled · logging to
+▎ /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/debug-1.log
+
+› Prompt from the fm-deck plugin
+❯ The fm-deck plugin sent a message:
+  From the decisions pane: the captain asks you to explain isf-load ("See
+  data/isf/report.md") in chat, in plain words: what it decides, the options, your
+  recommendation, and what happens if nothing is chosen. This is not an answer.
+
+  This is how Claude Code surfaces a prompt a plugin submits between turns — it starts this
+  turn in the user's place. Address the message above.
+
+  Read 1 file
+  ⎿  Interrupted · What should Claude do instead?
+
+✻ Worked for 2s · done 4:25 PM
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ○ tonequest  ○ cd-a+cd-b  ● iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ iowa-state-fair · open 11 days                                                            │
+│ Unclear: no options; a file path is the only context                                      │
+│ See data/isf/report.md                                                                    │
+│ No default recorded.                                                                      │
+│ asked firstmate (explain)                                                                 │
+│ Answer: : Load it Tuesday night  ⏎ send                                                   │
+│ [ Back ]                                                                                  │
+│ ────────────────────────────────────────────────────────────                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────╯
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯
+─────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ fm-deck: ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch ok · ctx …
+  Haiku 4.5 │ project ██░░░░░░░░ 22% 36.8k tkns │ 5h: ░░░░░░░░░░ 1%               firstmate

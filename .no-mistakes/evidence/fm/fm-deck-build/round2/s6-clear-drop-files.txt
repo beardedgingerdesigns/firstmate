@@ -1,0 +1,4 @@
+== cd-host-a-r2-1790977442052.json
+{"hold_id":"cd-host-a-r2","question_fingerprint":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","answer":{"option":"fly"},"answered_at":"2026-10-02T21:44:02Z","source":"fm-deck"}
+== cd-host-b-r2-1790977442084.json
+{"hold_id":"cd-host-b-r2","question_fingerprint":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","answer":{"option":"fly"},"answered_at":"2026-10-02T21:44:02Z","source":"fm-deck"}

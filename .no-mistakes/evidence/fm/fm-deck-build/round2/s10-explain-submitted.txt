@@ -1,0 +1,39 @@
+⚠ AGENTS.md is over the 40.0k-char limit (48.2k chars) · /memory to free up context
+
+▎ Debug mode enabled · logging to
+▎ /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/on1.log
+
+❯ /clear
+
+› Prompt from the fm-deck plugin
+❯ The fm-deck plugin sent a message:
+  From the decisions pane: the captain asks you to explain tq-inside-r2 ("Add a \"The
+  Inside\" field to issues and fill October from the doc?") in chat, in plain words: what it
+  decides, the options, your recommendation, and what happens if nothing is chosen. This is
+  not an answer.
+
+  This is how Claude Code surfaces a prompt a plugin submits between turns — it starts this
+  turn in the user's place. Address the message above.
+
+✳ Orchestrating…
+  ⎿  Tip: For a fast, cheap code review, try /code-review low. It runs the built-in skill at
+     its lightest effort level.
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ● tonequest  ○ cd-a+cd-b  ○ iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ tonequest · open 2 days                                                                   │
+│ Add a "The Inside" field to issues and fill October from the doc?                         │
+│ If nothing: October ships without The Inside.                                             │
+│ picked up: Add the field and fill October                                                 │
+│ [ Later… ] [ Explain ] [ Not mine ] [ Full question ]                                     │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 1 of 3 n: ▸ list from 21:44                                                          │
+│ Ready for you: PR #64 [ Open ] [ Copy link ]                                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────╯
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯
+─────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ fm-deck: ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch down 5m ·…
+  Haiku 4.5 │ 01M3Z7BBV64A6KTSX5S0HGB99Z │ 5h: ░░░░░░░░░░ 5%                      firstmate

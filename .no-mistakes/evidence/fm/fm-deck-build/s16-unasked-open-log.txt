@@ -1,0 +1,12 @@
+2026-10-02T21:22:22.200Z [DEBUG] hooks module fm-deck@skills-dir loaded (worker, environment 1, tier user); events: session.start,command.run,ui.render
+2026-10-02T21:22:24.155Z [DEBUG] hooks module fm-deck@skills-dir session.start settled in 1036.3ms (worker hop, next() included)
+2026-10-02T21:22:42.179Z [DEBUG] ui.open fm-deck calls (unasked, 93 columns): waits unplaced (unasked below 144 columns (93 now): placed when the person opens it, or when the terminal is widened to 144 columns)
+2026-10-02T21:23:00.027Z [DEBUG] ui.open fm-deck calls (asked, 93 columns): placed
+2026-10-02T21:25:41.056Z [DEBUG] ui.open fm-deck calls (asked, 93 columns): placed
+2026-10-02T21:27:05.919Z [DEBUG] ui.open fm-deck calls (asked, 93 columns): placed
+2026-10-02T21:27:40.815Z [DEBUG] hooks module fm-deck@skills-dir loaded (worker, environment 1, tier user); events: session.start,command.run,ui.render
+2026-10-02T21:27:42.630Z [DEBUG] ui.open fm-deck calls (unasked, 93 columns): waits unplaced (unasked below 144 columns (93 now): placed when the person opens it, or when the terminal is widened to 144 columns)
+2026-10-02T21:27:42.650Z [DEBUG] hooks module fm-deck@skills-dir session.start settled in 729.8ms (worker hop, next() included)
+2026-10-02T21:27:46.803Z [DEBUG] ui.open fm-deck calls (asked, 93 columns): placed
+2026-10-02T21:28:18.189Z [DEBUG] ui.open fm-deck calls (asked, 93 columns): placed
+2026-10-02T21:29:08.315Z [DEBUG] ui.open fm-deck calls (asked, 93 columns): placed

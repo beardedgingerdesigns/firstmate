@@ -1,0 +1,1 @@
+{"hold_id":"isf-load-r2","question_fingerprint":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd","answer":{"text":"Load it Tuesday night"},"answered_at":"2026-10-02T21:44:40Z","source":"fm-deck"}

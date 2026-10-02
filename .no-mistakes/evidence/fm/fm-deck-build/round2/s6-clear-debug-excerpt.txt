@@ -1,0 +1,43 @@
+976:2026-10-02T21:44:01.203Z [DEBUG] $.fs.read (fm-deck): /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/state/.lock-session failed: ENOENT: no such file or directory, open '/var/folders/k2/9s6_2k2x4zj1x4
+977:2026-10-02T21:44:01.236Z [DEBUG] fm-deck (core) answered ui.press without next() in 0.6ms; nothing beneath it ran for this dispatch
+978:2026-10-02T21:44:01.236Z [DEBUG] ui.press fm-deck/option-2 in Pane from terminal: settled in 0.8ms
+979:2026-10-02T21:44:01.241Z [DEBUG] $.ui.toast (fm-deck): Sent: Fly. u to undo (5 s)
+981:2026-10-02T21:44:01.244Z [DEBUG] fm-deck (user) answered ui.render without next() in 3.6ms; nothing beneath it ran for this dispatch
+982:2026-10-02T21:44:01.244Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 4.1ms (worker hop, next() included) key=above-prompt
+983:2026-10-02T21:44:01.245Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 5.3ms (worker hop, next() included) key=calls
+984:2026-10-02T21:44:01.246Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 5.7ms (worker hop, next() included) key=session-mode
+996:2026-10-02T21:44:01.510Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 1.3ms (worker hop, next() included) key=above-prompt
+1005:2026-10-02T21:44:02.051Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 9.5ms (worker hop, next() included) key=above-prompt
+1006:2026-10-02T21:44:02.052Z [DEBUG] hooks module firstmate-calm@skills-dir, fm-deck@skills-dir ui.render settled in 11.3ms (worker hop, next() included) key=placeholder
+1007:2026-10-02T21:44:02.067Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 10.3ms (worker hop, next() included) key=above-prompt
+1008:2026-10-02T21:44:02.068Z [DEBUG] $.fs.write (fm-deck): /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/state/answer-drop/.cd-host-a-r2.fm-deck.1790977442052lb23ehit81d.tmp (199 bytes)
+1009:2026-10-02T21:44:02.071Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 13.4ms (worker hop, next() included) key=session-mode
+1010:2026-10-02T21:44:02.073Z [DEBUG] $.process.run (fm-deck): /bin/ln with 2 args in /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7BBV64A6KTSX5S0HGB99Z (pid 29343)
+1011:2026-10-02T21:44:02.075Z [DEBUG] hooks module firstmate-calm@skills-dir, fm-deck@skills-dir ui.render settled in 5.2ms (worker hop, next() included) key=placeholder
+1012:2026-10-02T21:44:02.078Z [DEBUG] $.process.run (fm-deck): /bin/ln exited 0 in 7ms, 0 + 0 chars
+1013:2026-10-02T21:44:02.080Z [DEBUG] $.process.run (fm-deck): /bin/rm with 2 args in /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7BBV64A6KTSX5S0HGB99Z (pid 29346)
+1014:2026-10-02T21:44:02.084Z [DEBUG] $.process.run (fm-deck): /bin/rm exited 0 in 6ms, 0 + 0 chars
+1015:2026-10-02T21:44:02.085Z [DEBUG] $.fs.write (fm-deck): /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/state/answer-drop/.cd-host-b-r2.fm-deck.1790977442084gsapg19fop.tmp (199 bytes)
+1016:2026-10-02T21:44:02.088Z [DEBUG] $.process.run (fm-deck): /bin/ln with 2 args in /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7BBV64A6KTSX5S0HGB99Z (pid 29350)
+1017:2026-10-02T21:44:02.089Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 2.4ms (worker hop, next() included) key=above-prompt
+1018:2026-10-02T21:44:02.093Z [DEBUG] $.process.run (fm-deck): /bin/ln exited 0 in 6ms, 0 + 0 chars
+1019:2026-10-02T21:44:02.094Z [DEBUG] $.process.run (fm-deck): /bin/rm with 2 args in /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7BBV64A6KTSX5S0HGB99Z (pid 29357)
+1020:2026-10-02T21:44:02.099Z [DEBUG] $.process.run (fm-deck): /bin/rm exited 0 in 6ms, 0 + 0 chars
+1021:2026-10-02T21:44:02.102Z [DEBUG] $.store.set (fm-deck@skills-dir): sent
+1022:2026-10-02T21:44:02.103Z [DEBUG] hooks module cc-plugin-telemetry@builtin session.end settled in 0.2ms (native link, next() included)
+1023:2026-10-02T21:44:02.103Z [DEBUG] hooks module fm-deck@skills-dir session.end settled in 78.9ms (worker hop, next() included)
+1024:2026-10-02T21:44:02.104Z [DEBUG] Cleared all session hooks for session bb114bb4-d2a1-4f68-8917-2054b53f1b02
+1052:2026-10-02T21:44:02.257Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 32.4ms (worker hop, next() included) key=above-prompt
+1053:2026-10-02T21:44:02.257Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 31.1ms (worker hop, next() included) key=session-mode
+1105:2026-10-02T21:44:02.624Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nPONYTAIL MODE ACTIVE — level: full\n\n# Ponytail\n\nYou are a lazy senior developer. Lazy means efficient, not careless. You have\
+1107:2026-10-02T21:44:02.915Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/chrome-devtools-axi\ndescription: Agent ergonomic interface for controlling Chrome browser se
+1112:2026-10-02T21:44:03.000Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\n{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"\\n<context_window_protection>\\n  <priority_ins
+1115:2026-10-02T21:44:03.498Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/gh-axi\ndescription: Agent ergonomic wrapper around Github CLI. Prefer this over `gh` and oth
+1116:2026-10-02T21:44:04.214Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 7.4ms (worker hop, next() included) key=above-prompt
+1117:2026-10-02T21:44:04.214Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 7.4ms (worker hop, next() included) key=session-mode
+1118:2026-10-02T21:44:04.234Z [DEBUG] $.fs.read (fm-deck): /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/state/.lock-session failed: ENOENT: no such file or directory, open '/var/folders/k2/9s6_2k2x4zj1x
+1119:2026-10-02T21:44:04.237Z [DEBUG] $.ui.status (fm-deck): ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch ok · 5h 5% · 7d 24%
+1120:2026-10-02T21:44:04.244Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 1.9ms (worker hop, next() included) key=above-prompt
+1122:2026-10-02T21:44:04.253Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/lavish-axi\ndescription: \"Lavish Editor helps agents turn rich HTML artifacts into collabora
+1125:2026-10-02T21:44:04.308Z [DEBUG] hooks module fm-deck@skills-dir ui.render settled in 1.8ms (worker hop, next() included) key=session-mode
+1126:2026-10-02T21:44:07.205Z [DEBUG] $.fs.read (fm-deck): /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/state/.lock-session failed: ENOENT: no such file or directory, open '/var/folders/k2/9s6_2k2x4zj1x

@@ -1,0 +1,17 @@
+
+
+
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ○ tonequest  ● cd-a+cd-b  ○ iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ cd-a, cd-b · open 4 days                                                                  │
+│ Unclear: same question on 2 items                                                         │
+│ Which host should the CD staging site use?                                                │
+│ No default recorded.                                                                      │
+│ sent: Fly                                                                                 │
+│ [ Later… ] [ Explain ] [ Not mine ] [ Ask firstmate to rewrite ]                          │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 2 of 3 n: ▸ list from 21:43                                                          │
+╰───────────────────────────────────────────────────────────────────────────────────────────╯
+

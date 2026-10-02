@@ -1,0 +1,39 @@
+
+  The question is: "Add a 'The Inside' field to issues and fill October from the doc?"
+
+  I understand we're considering adding a structured field to issues, and filling historical
+  data (October's entries) from an existing document. But I'm missing:
+
+  1. What is "The Inside" field? What data would it capture, and what's its purpose in the
+     issue tracker?
+  2. Which document? What doc is the source for October's data?
+  3. Why October specifically? Is that a test, a specific milestone, or the full scope?
+
+  Once I have those details, I can give you:
+  - What you're actually deciding (the tradeoff)
+  - Whether the field solves a real tracking or visibility problem
+  - My recommendation
+  - What happens if you skip it (continues as-is, or creates debt later?)
+
+  What's the context?
+
+✻ Sautéed for 9s · done 4:45 PM
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ● tonequest  ○ cd-a+cd-b  ○ iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ tonequest · open 2 days                                                                   │
+│ Add a "The Inside" field to issues and fill October from the doc?                         │
+│ If nothing: October ships without The Inside.                                             │
+│ picked up: Add the field and fill October                                                 │
+│ [ Later… ] [ Explain ] [ Not mine ] [ Full question ]                                     │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 1 of 3 n: ▸ list from 21:44                                                          │
+│ Ready for you: PR #64 [ Open ] [ Copy link ]                                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────╯
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯
+─────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ fm-deck: ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch down 6m ·…
+  Haiku 4.5 │ 01M3Z7BBV64A6KTSX5S0HGB99Z ███░░░░░░░ 30% 19.3k tkns │ 5h: ░░░░░░░░░░ 5%

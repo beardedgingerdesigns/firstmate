@@ -1,0 +1,4 @@
+== cd-host-a-1790976256102.json
+{"hold_id":"cd-host-a","question_fingerprint":"2222222222222222222222222222222222222222222222222222222222222222","answer":{"option":"fly"},"answered_at":"2026-10-02T21:24:16Z","source":"fm-deck"}
+== cd-host-b-1790976256118.json
+{"hold_id":"cd-host-b","question_fingerprint":"3333333333333333333333333333333333333333333333333333333333333333","answer":{"option":"fly"},"answered_at":"2026-10-02T21:24:16Z","source":"fm-deck"}

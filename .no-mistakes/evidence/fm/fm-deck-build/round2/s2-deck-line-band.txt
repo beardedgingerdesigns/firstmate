@@ -1,0 +1,39 @@
+
+ ▐▛███▛█   Claude Code v2.1.288
+▝▜██████▀  Haiku 4.5 · Claude Max
+ ▝▝   ▝▝   ~/.no-mistakes/worktrees/d2386019607f/01M3Z7BBV64A6KTSX5S0HGB99Z
+
+⚠ AGENTS.md is over the 40.0k-char limit (48.2k chars) · /memory to free up context
+
+▎ Debug mode enabled · logging to
+▎ /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/on1.log
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3 calls wait on you · PR #64 ready [ Calls ] [ Open PR #64 ]                              [-]
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯ Try "how does fm-spawn.sh work?"
+─────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ fm-deck: ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch ok · 5h 5…
+  Haiku 4.5 │ 01M3Z7BBV64A6KTSX5S0HGB99Z │ 5h: ░░░░░░░░░░ 5%                      firstmate
+  ⏸ manual mode on · ← for agents

@@ -1,0 +1,40 @@
+
+ ▐▛███▛█   Claude Code v2.1.288
+▝▜██████▀  Haiku 4.5 · Claude Max
+ ▝▝   ▝▝   /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/project
+
+▎ Debug mode enabled · logging to
+▎ /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/debug-1.log
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3 calls wait on you · PR #64 ready [ Calls ] [ Open PR #64 ]                              [-]
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯
+─────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ fm-deck: ⚓ firstmate · helm: another session (other-…) · 5h 2% · 7d 24%
+  Haiku 4.5 │ project │ 5h: ░░░░░░░░░░ 2%                                         firstmate
+  ⏸ manual mode on · ← for agents
+2026-10-02T21:28:00.737Z [DEBUG] $.ui.status (fm-deck): ⚓ firstmate · helm: another session (other-…) · 5h 2% · 7d 24%

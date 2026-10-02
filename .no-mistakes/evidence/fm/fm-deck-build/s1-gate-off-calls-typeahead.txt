@@ -1,0 +1,39 @@
+
+ ▐▛███▛█   Claude Code v2.1.288
+▝▜██████▀  Haiku 4.5 · Claude Max
+ ▝▝   ▝▝   /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/project
+
+▎ Debug mode enabled · logging to
+▎ /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/debug-0.log
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /claude-api                          Reference for the Claude API / Anthropic SDK — model
+                                       ids, pricing, params, streaming, tool use, MCP, age…
+  /context-mode:ctx-index              (context-mode) Index a local file or directory into
+                                       context-mode's persistent FTS5 knowledge base so fu…
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯ /calls
+─────────────────────────────────────────────────────────────────────────────────────────────
+  Haiku 4.5 │ project │ 5h: ░░░░░░░░░░ 0%
+  ⏸ manual mode on

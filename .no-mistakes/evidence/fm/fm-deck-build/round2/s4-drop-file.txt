@@ -1,0 +1,6 @@
+total 8
+drwxr-xr-x@ 3 justinlobaito  staff   96 Oct  2 16:43 .
+drwxr-xr-x@ 6 justinlobaito  staff  192 Oct  2 16:39 ..
+-rw-r--r--@ 1 justinlobaito  staff  199 Oct  2 16:43 tq-inside-r2-1790977416512.json
+== /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.2cqKTt/state/answer-drop/tq-inside-r2-1790977416512.json
+{"hold_id":"tq-inside-r2","question_fingerprint":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","answer":{"option":"add"},"answered_at":"2026-10-02T21:43:36Z","source":"fm-deck"}

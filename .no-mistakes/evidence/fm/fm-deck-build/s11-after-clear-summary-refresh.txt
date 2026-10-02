@@ -1,0 +1,39 @@
+
+ ▐▛███▛█   Claude Code v2.1.288
+▝▜██████▀  Haiku 4.5 · Claude Max
+ ▝▝   ▝▝   /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/project
+
+▎ Debug mode enabled · logging to
+▎ /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/debug-1.log
+
+❯ /clear
+
+
+
+
+
+
+
+
+
+
+
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ● tonequest  ○ cd-a+cd-b  ○ iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ tonequest · open 2 days                                                                   │
+│ Add a "The Inside" field to issues and fill October from the doc?                         │
+│ If nothing: October ships without The Inside.                                             │
+│ [ Add the field and fill October  ← recommended ]                                         │
+│ [ Skip it for October ]                                                                   │
+│ [ Use your rec ] [ Later… ] [ Explain ] [ Not mine ] [ Type… ] [ Full question ]          │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 1 of 3 n: ▸ list from 21:21                                                          │
+╰───────────────────────────────────────────────────────────────────────────────────────────╯
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯
+─────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ fm-deck: ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch down 6m ·…
+  Haiku 4.5 │ project │ 5h: ░░░░░░░░░░ 1%                                         firstmate

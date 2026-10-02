@@ -1,0 +1,3 @@
+2026-10-02T21:50:40.986Z [DEBUG] $.ui.toast (fm-deck): Sent: Skip it for October. u to undo (5 s)
+2026-10-02T21:50:45.989Z [DEBUG] $.ui.toast (fm-deck): Not sent: firstmate publishes no answer folder
+elsewhere:        0 files; answer-drop r3 files: 0

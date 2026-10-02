@@ -1,0 +1,32 @@
+
+ ▐▛███▛█   Claude Code v2.1.288
+▝▜██████▀  Haiku 4.5 · Claude Max
+ ▝▝   ▝▝   /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/project
+
+▎ Debug mode enabled · logging to
+▎ /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/debug-1.log
+
+› Prompt from the fm-deck plugin
+❯ The fm-deck plugin sent a message:
+  From the decisions pane: the captain asks you to explain isf-load ("See
+  data/isf/report.md") in chat, in plain words: what it decides, the options, your
+  recommendation, and what happens if nothing is chosen. This is not an answer.
+
+  This is how Claude Code surfaces a prompt a plugin submits between turns — it starts this
+  turn in the user's place. Address the message above.
+
+  Reading ~/repos/firstmate/data/isf/report.md
+  ⎿  ~/repos/firstmate/data/isf/report.md
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+ Read file
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Read(/Users/justinlobaito/repos/firstmate/data/isf/report.md)
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Do you want to proceed?
+ ❯ 1. Yes
+   2. Yes, allow reading from /Users/justinlobaito/repos/firstmate/data/isf during this
+      session
+   3. No
+
+ Esc to cancel · Tab to amend

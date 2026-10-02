@@ -1,0 +1,10 @@
+ok - hold records repeatable options and refuses duplicate or reserved keys
+ok - home summary publishes generated_at, fleet, options, fingerprints, and the drop folder
+ok - adapter resolves valid answers and rejects mismatched, malformed, and unknown ones
+ok - the first answer wins across channels
+ok - question_fingerprint follows the hold's current wording
+ok - close mode comes from the hold, not the file
+ok - the adapter accepts aios-ui and fm-deck sources, passes the source to the intake, and rejects any other
+ok - replay after a crash is idempotent and never deletes evidence
+ok - runner captures, wakes, applies, and acknowledges a dropped answer
+exit 0

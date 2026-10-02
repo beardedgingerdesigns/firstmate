@@ -1,0 +1,4 @@
+1649:2026-10-02T21:46:19.533Z [DEBUG] $.ui.toast (fm-deck): Sent: Load it Wednesday instead. u to undo (5 s)
+1714:2026-10-02T21:46:21.333Z [DEBUG] $.fs.write (fm-deck): /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.2cqKTt/state/answer-drop/.isf-load-r2.fm-deck.1790977581332w0gu530qb4.tmp (218 bytes
+1719:2026-10-02T21:46:21.346Z [DEBUG] $.store.set (fm-deck@skills-dir): sent
+1721:2026-10-02T21:46:21.347Z [DEBUG] hooks module fm-deck@skills-dir session.end settled in 16.5ms (worker hop, next() included)

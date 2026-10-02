@@ -1,0 +1,14 @@
+157:2026-10-02T21:22:22.200Z [DEBUG] hooks module fm-deck@skills-dir loaded (worker, environment 1, tier user); events: session.start,command.run,ui.render
+489:2026-10-02T21:22:24.155Z [DEBUG] hooks module fm-deck@skills-dir session.start settled in 1036.3ms (worker hop, next() included)
+1181:2026-10-02T21:26:10.662Z [DEBUG] $.ui.toast (fm-deck): Not sent: firstmate publishes no answer folder
+2026-10-02T21:26:05.654Z [DEBUG] ui.press fm-deck/option-1 in Pane from terminal: settled in 1.0ms
+2026-10-02T21:26:05.659Z [DEBUG] $.ui.toast (fm-deck): Sent: DigitalOcean. u to undo (5 s)
+2026-10-02T21:26:07.326Z [DEBUG] hooks module cc-plugin-telemetry@builtin session.end settled in 0.7ms (native link, next() included)
+2026-10-02T21:26:07.327Z [DEBUG] Cleared all session hooks for session f7339396-502f-4571-9800-18e382dfab25
+2026-10-02T21:26:07.630Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nPONYTAIL MODE ACTIVE — level: full\n\n# Ponytail\n\nYou are a lazy senior developer. Lazy means efficient, not care
+2026-10-02T21:26:07.858Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\n{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"\\n<context_window_protection>\\n
+2026-10-02T21:26:07.994Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/chrome-devtools-axi\ndescription: Agent ergonomic interface for controlling Ch
+2026-10-02T21:26:08.075Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/gh-axi\ndescription: Agent ergonomic wrapper around Github CLI. Prefer this ov
+2026-10-02T21:26:09.065Z [DEBUG] "Hook SessionStart:clear (SessionStart) success:\nbin: ~/.nvm/versions/node/v24.14.1/bin/lavish-axi\ndescription: \"Lavish Editor helps agents turn rich HTML artifacts
+2026-10-02T21:26:09.275Z [DEBUG] $.ui.status (fm-deck): (cleared)
+2026-10-02T21:26:10.662Z [DEBUG] $.ui.toast (fm-deck): Not sent: firstmate publishes no answer folder

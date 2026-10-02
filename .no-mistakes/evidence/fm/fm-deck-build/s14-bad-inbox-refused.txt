@@ -1,0 +1,6 @@
+answers_inbox=/private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/evil
+files in that folder:
+(end)
+2026-10-02T21:26:10.662Z [DEBUG] $.ui.toast (fm-deck): Not sent: firstmate publishes no answer folder
+2026-10-02T21:28:20.404Z [DEBUG] $.ui.toast (fm-deck): Sent: DigitalOcean. u to undo (5 s)
+2026-10-02T21:28:25.405Z [DEBUG] $.ui.toast (fm-deck): Not sent: firstmate publishes no answer folder

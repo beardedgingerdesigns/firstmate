@@ -1,0 +1,133 @@
+{
+  "generated_at": "2026-10-02T21:21:21Z",
+  "generated": "2026-10-02T21:21:21Z",
+  "answers_inbox": "/private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.lHnDUT/state/answer-drop",
+  "answers_seen": [],
+  "decisions_open": [
+    {
+      "id": "tq-inside",
+      "project": "tonequest",
+      "summary": "The Inside field",
+      "question": "Add a \"The Inside\" field to issues and fill October from the doc? Recommended: yes. If nothing: October ships without The Inside.",
+      "options": [
+        {
+          "key": "add",
+          "label": "Add the field and fill October - recommended"
+        },
+        {
+          "key": "skip",
+          "label": "Skip it for October"
+        }
+      ],
+      "question_fingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+      "hold_bucket": "live",
+      "hold_age_days": 2
+    },
+    {
+      "id": "cd-host-a",
+      "project": "cd-a",
+      "summary": "Host",
+      "question": "Which host should the CD staging site use?",
+      "options": [
+        {
+          "key": "do",
+          "label": "DigitalOcean"
+        },
+        {
+          "key": "fly",
+          "label": "Fly"
+        }
+      ],
+      "question_fingerprint": "2222222222222222222222222222222222222222222222222222222222222222",
+      "hold_bucket": "live",
+      "hold_age_days": 1
+    },
+    {
+      "id": "cd-host-b",
+      "project": "cd-b",
+      "summary": "Host",
+      "question": "Which host should the CD staging site use?",
+      "options": [
+        {
+          "key": "do",
+          "label": "DigitalOcean"
+        },
+        {
+          "key": "fly",
+          "label": "Fly"
+        }
+      ],
+      "question_fingerprint": "3333333333333333333333333333333333333333333333333333333333333333",
+      "hold_bucket": "live",
+      "hold_age_days": 4
+    },
+    {
+      "id": "isf-load",
+      "project": "iowa-state-fair",
+      "summary": "DB load",
+      "question": "See data/isf/report.md",
+      "options": [],
+      "question_fingerprint": "4444444444444444444444444444444444444444444444444444444444444444",
+      "hold_bucket": "live",
+      "hold_age_days": 11
+    },
+    {
+      "id": "w1",
+      "key": "d1",
+      "verb": "decide",
+      "summary": "Worker status decision",
+      "reason": null,
+      "project": "x",
+      "options": [],
+      "question": null,
+      "question_fingerprint": null,
+      "source": "status"
+    }
+  ],
+  "queued": [
+    {
+      "id": "parked-dated",
+      "hold_bucket": "dated",
+      "captain_actionable": false
+    },
+    {
+      "id": "parked-aged",
+      "hold_bucket": "aged",
+      "captain_actionable": false
+    },
+    {
+      "id": "parked-wait",
+      "hold_bucket": "waiting",
+      "captain_actionable": false
+    },
+    {
+      "id": "plain",
+      "hold_bucket": null,
+      "captain_actionable": false
+    },
+    {
+      "id": "tq-inside",
+      "hold_bucket": "live",
+      "captain_actionable": true
+    }
+  ],
+  "contributions": {
+    "captain": [
+      {
+        "task": "ie-accounts",
+        "url": "https://github.com/acme/ie/pull/64",
+        "kind": "pr"
+      }
+    ]
+  },
+  "fleet": [
+    {
+      "task_id": "w1",
+      "state": "working"
+    },
+    {
+      "task_id": "w2",
+      "state": "blocked"
+    }
+  ]
+}

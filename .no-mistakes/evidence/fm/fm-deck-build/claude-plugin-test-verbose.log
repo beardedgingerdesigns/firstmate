@@ -1,0 +1,29 @@
+
+tests/deck.test.ts:
+(pass) activation > is fully inert when the function-hooks opt-in is absent [149.95ms]
+(pass) activation > is fully inert when the function-hooks opt-in is true [68.82ms]
+(pass) activation > draws nothing in a home with no summary [69.92ms]
+(pass) Deck line > pins counts, monitoring, context, and quota, and labels the window [90.79ms]
+(pass) Deck line > says when another session holds the helm, and when monitoring is down [57.83ms]
+(pass) Deck line > flags stale monitoring while workers run [144.35ms]
+(pass) Deck line > the band shows only when something waits, and yields to a survey [134.69ms]
+(pass) Deck line > the band passes when nothing waits [63.63ms]
+(pass) Deck line > opens the pane unasked once when live calls exist, and /calls opens it focused [71.01ms]
+(pass) Deck line > does not open unasked again when calls clear and new ones arrive in the same session [78.54ms]
+(pass) Captain's Call cards > shows live calls one at a time, groups identical questions, counts parked, and lints unclear ones [126.21ms]
+(pass) Captain's Call cards > a pick publishes after five seconds as one fm-deck drop file, through a temp file and a hard link [142.01ms]
+(pass) Captain's Call cards > undo within five seconds sends nothing [96.07ms]
+(pass) Captain's Call cards > a /clear inside the undo window sends the pick instead of dropping it [58.30ms]
+(pass) Captain's Call cards > a grouped card answers every hold it covers [61.18ms]
+(pass) Captain's Call cards > a typed answer publishes the words [70.86ms]
+(pass) Captain's Call cards > on mobile, t asks firstmate to take the answer in chat [51.19ms]
+(pass) Captain's Call cards > later, explain, not-mine, and rewrite go to firstmate as framed prompts, never as answers [82.09ms]
+(pass) Captain's Call cards > status follows answers_seen and survives a restart through the store [107.90ms]
+(pass) Captain's Call cards > an ask from an earlier session offers resend [56.39ms]
+(pass) Captain's Call cards > Ready for you opens and copies the PR link [62.75ms]
+(pass) Captain's Call cards > flags a summary older than ten minutes [46.51ms]
+(pass) Captain's Call cards > never writes outside the published answer folder [64.87ms]
+
+ 23 pass
+ 0 fail
+Ran 23 tests across 1 file. [2.55s]

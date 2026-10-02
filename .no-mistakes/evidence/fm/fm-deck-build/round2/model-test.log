@@ -1,0 +1,3 @@
+ok - the fm-deck mod is one hooks module and its state contract, linked into the project's auto-load path, with nothing that loads past its opt-in
+ok - the deck model groups, parks, and lints cards, writes the adapter's exact drop file, frames non-answers as prompts, and builds the Deck line
+exit 0

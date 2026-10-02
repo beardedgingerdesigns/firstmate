@@ -1,0 +1,7 @@
+❯
+─────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ fm-deck: ⚓ firstmate · helm: another session (other-…) · ctx 25% · 5h 5% · 7d 24%
+  Haiku 4.5 │ 01M3Z7BBV64A6KTSX5S0HGB99Z ███░░░░░░░ 30% 19.3k tkns │ 5h: ░░░░░░░░░░ 5%
+2026-10-02T21:45:13.240Z [DEBUG] $.ui.status (fm-deck): ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch down 6m · ctx 25% · 5h 5% · 7d 24%
+2026-10-02T21:45:34.249Z [DEBUG] $.ui.status (fm-deck): ⚓ firstmate · 3 calls · 1 PR ready · 2 workers (1 blocked) · watch ok · ctx 25% · 5h 5% · 7d 24%
+2026-10-02T21:45:40.260Z [DEBUG] $.ui.status (fm-deck): ⚓ firstmate · helm: another session (other-…) · ctx 25% · 5h 5% · 7d 24%

@@ -1,0 +1,12 @@
+
+
+
+  /claude-api                          Reference for the Claude API / Anthropic SDK — model
+                                       ids, pricing, params, streaming, tool use, MCP, age…
+  /context-mode:ctx-index              (context-mode) Index a local file or directory into
+                                       context-mode's persistent FTS5 knowledge base so fu…
+─────────────────────────────────────────────────────────────────────────────────────────────
+❯ /calls
+─────────────────────────────────────────────────────────────────────────────────────────────
+  Haiku 4.5 │ 01M3Z7BBV64A6KTSX5S0HGB99Z │ 5h: ░░░░░░░░░░ 5%
+  ⏸ manual mode on

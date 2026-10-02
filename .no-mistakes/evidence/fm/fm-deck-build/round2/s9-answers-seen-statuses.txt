@@ -1,0 +1,39 @@
+
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ● tonequest  ○ cd-a+cd-b  ○ iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ tonequest · open 2 days                                                                   │
+│ Add a "The Inside" field to issues and fill October from the doc?                         │
+│ If nothing: October ships without The Inside.                                             │
+│ picked up: Add the field and fill October                                                 │
+│ [ Later… ] [ Explain ] [ Not mine ] [ Full question ]                                     │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 1 of 3 n: ▸ list from 21:44                                                          │
+│ Ready for you: PR #64 [ Open ] [ Copy link ]                                              │
+
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ○ tonequest  ● cd-a+cd-b  ○ iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ cd-a, cd-b · open 4 days                                                                  │
+│ Unclear: same question on 2 items                                                         │
+│ Which host should the CD staging site use?                                                │
+│ No default recorded.                                                                      │
+│ done: Fly                                                                                 │
+│ [ Later… ] [ Explain ] [ Not mine ] [ Ask firstmate to rewrite ]                          │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 2 of 3 n: ▸ list from 21:44                                                          │
+
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│ 3 waiting · 3 parked                                                                    ✕ │
+│ ○ tonequest  ○ cd-a+cd-b  ● iowa-state-fair                                               │
+│ ────────────────────────────────────────────────────────────                              │
+│ iowa-state-fair · open 11 days                                                            │
+│ Unclear: no options; a file path is the only context                                      │
+│ See data/isf/report.md                                                                    │
+│ No default recorded.                                                                      │
+│ not taken (already_answered); answer again                                                │
+│ [ Later… ] [ Explain ] [ Not mine ] [ Type… ] [ Ask firstmate to rewrite ]                │
+│ ────────────────────────────────────────────────────────────                              │
+│ p: ◂ 3 of 3 n: ▸ list from 21:44                                                          │

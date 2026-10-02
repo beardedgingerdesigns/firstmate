@@ -9,7 +9,7 @@
 # classifier contract, and includes both the existing generated timestamp and
 # generated_epoch for freshness arithmetic. Additive structured-answer fields
 # (generated_at, fleet, per-decision options, question, and question_fingerprint,
-# answers_inbox, answers_seen) are owned by bin/fm-fleet-snapshot.sh --help.
+# answers_inbox, answers_seen, sites) are owned by bin/fm-fleet-snapshot.sh --help.
 # After a successful publication the refresh arms the answer-drop source when an
 # answer is already waiting (bin/fm-procevent-answer-drop.sh arm --if-pending).
 #

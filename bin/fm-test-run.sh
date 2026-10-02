@@ -290,7 +290,7 @@ family_for_basename() {
     fm-kimi-harness.test.sh|fm-devin-harness.test.sh|fm-muse-harness.test.sh|fm-rovo-harness.test.sh|fm-agy-harness.test.sh|fm-omp-harness.test.sh|fm-herdr-lab.test.sh|fm-lint.test.sh|\
     fm-lint-workflows.test.sh|\
     fm-operational-input.test.sh|fm-pi-primary-types.test.sh|\
-    fm-calm-claude-mod.test.sh|\
+    fm-calm-claude-mod.test.sh|fm-deck-claude-mod.test.sh|\
     fm-harness-adapter-references.test.sh|\
     fm-send-popup-settle.test.sh|fm-send-settle.test.sh|\
     fm-subagent-pretool-check.test.sh|\
@@ -370,6 +370,7 @@ family_for_basename() {
     fm-quota-array-dispatch-live-e2e.test.sh|fm-send-secondmate-marker-herdr-e2e.test.sh|\
     fm-send-inbox-doorbell-live-e2e.test.sh|\
     fm-calm-claude-mod-plugin.test.sh|fm-calm-claude-mod-live-e2e.test.sh|\
+    fm-deck-claude-mod-plugin.test.sh|\
     fm-calm-pi-queue-retention-live-e2e.test.sh|\
     fm-herdr-submit-confirm-live-e2e.test.sh|\
     fm-kimi-startup-submit-live-e2e.test.sh)
@@ -728,6 +729,8 @@ tests/fm-cursor-harness.test.sh 30212
 tests/fm-cursor-primary-live-e2e.test.sh 72
 tests/fm-cursor-primary.test.sh 52269
 tests/fm-daemon.test.sh 27262
+tests/fm-deck-claude-mod-plugin.test.sh 172
+tests/fm-deck-claude-mod.test.sh 340
 tests/fm-dispatch-resolve.test.sh 4397
 tests/fm-documentation-audiences.test.sh 847
 tests/fm-dod-lib.test.sh 4000
@@ -1527,6 +1530,11 @@ families_for_changed_path() {
       printf '%s\n' __script__:fm-calm-claude-mod.test.sh
       printf '%s\n' __script__:fm-calm-pi-extension.test.sh
       printf '%s\n' __script__:fm-pi-primary-types.test.sh
+      printf '%s\n' live-harness-optin
+      ;;
+    .claude/mods/fm-deck/*)
+      # The Claude Code fm-deck mod: its portable Node checks and the Claude-dependent guard.
+      printf '%s\n' __script__:fm-deck-claude-mod.test.sh
       printf '%s\n' live-harness-optin
       ;;
     bin/fm-sessionstart-run.sh|.claude/settings.json|.codex/hooks.json|\

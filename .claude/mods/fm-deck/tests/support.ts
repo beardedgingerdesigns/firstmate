@@ -79,6 +79,8 @@ export type World = {
   journal: Journal;
   /** Replace the summary, as a refresh does: new text and a new mtime. */
   publish: (doc: Record<string, unknown>) => void;
+  /** What a real /clear does to the deck's view: it reads as its initial until next written. */
+  clearView: () => void;
 };
 
 export type WorldOptions = {
@@ -106,6 +108,7 @@ export function world(on: On, options: WorldOptions = {}): World {
   for (const note of options.notes ?? []) files.set(`${STATE}/inbox/${note}`, { text: "note", mtimeMs: NOW });
   const journal: Journal = { commands: [], toasts: [], statuses: [], opens: [], writes: [], runs: [], prompts: [], copies: [], fsReads: [] };
   let bump = 0;
+  let viewCleared = false;
 
   on("fs.read", async (_$, e) => {
     journal.fsReads.push(e.path);
@@ -173,6 +176,16 @@ export function world(on: On, options: WorldOptions = {}): World {
     value: { startedAt: NOW - 60_000, context: { window: 200_000, percent: 41 }, rateLimits: [{ kind: "five_hour", percentUsed: 62 }] },
   }));
   on("session.start", async (_$, e) => ({ cwd: e.cwd }));
+  on("session.end", async (_$, e) => ({ sessionId: e.sessionId }));
+  on("state.get", async (_$, e, next) => {
+    const held = await next(e);
+    if (!viewCleared || e.plugin !== "fm-deck" || e.key !== "view" || !("value" in held)) return held;
+    return { value: { value: undefined, version: held.value.version } };
+  });
+  on("state.set", async (_$, e, next) => {
+    if (e.plugin === "fm-deck" && e.key === "view") viewCleared = false;
+    return next(e);
+  });
   // The engine's own drawing; the footer's mode labels are echoed so a rewrite is visible.
   on("ui.render", async (_$, e) => ({
     type: "Text",
@@ -187,6 +200,9 @@ export function world(on: On, options: WorldOptions = {}): World {
     publish: (doc) => {
       bump += 1;
       files.set(SUMMARY, { text: JSON.stringify(doc), mtimeMs: NOW + bump });
+    },
+    clearView: () => {
+      viewCleared = true;
     },
   };
 }

@@ -101,7 +101,12 @@ async function loadRecords<T extends { at: number }>($: EngineInterface, key: st
 /** One poll: re-read what changed, redraw readers, and refresh the status line. */
 async function poll($: EngineInterface): Promise<void> {
   const state = `${home}/state`;
-  const current = await read($, view);
+  let current = await read($, view);
+  // A /clear puts the view back at its initial with no session.start: restore it.
+  if (current.session === "") {
+    await restore($);
+    current = await read($, view);
+  }
   let summary: DeckSummary | null = current.summary;
   const changed = await mtime($, `${state}/home-summary.json`);
   if (changed === undefined) {
@@ -155,20 +160,25 @@ async function poll($: EngineInterface): Promise<void> {
   }
 }
 
-async function start($: EngineInterface): Promise<void> {
-  home = deckHome(
-    { FM_HOME: await $.env.get("FM_HOME"), FM_ROOT_OVERRIDE: await $.env.get("FM_ROOT_OVERRIDE") },
-    $.plugin.root,
-  );
+/** Send any pending pick, then reload the view's session and records and re-read the summary. */
+async function restore($: EngineInterface): Promise<void> {
   summaryMtime = -1;
   lastLine = undefined;
-  openedUnasked = false;
   await flush($);
   const now = await $.clock.now();
   const session = await $.session.id().catch(() => "");
   const sent = await loadRecords<DeckSent>($, STORE_SENT, now);
   const asks = await loadRecords<DeckAsk>($, STORE_ASKS, now);
   await update($, view, (v): DeckView => ({ ...v, session, sent, asks, pending: null, mode: "card" }));
+}
+
+async function start($: EngineInterface): Promise<void> {
+  home = deckHome(
+    { FM_HOME: await $.env.get("FM_HOME"), FM_ROOT_OVERRIDE: await $.env.get("FM_ROOT_OVERRIDE") },
+    $.plugin.root,
+  );
+  openedUnasked = false;
+  await restore($);
   await poll($);
   poller?.cancel();
   poller = $.clock.every(POLL_MS, () => {
@@ -189,9 +199,7 @@ async function cardsNow($: EngineInterface): Promise<{ v: DeckView; cards: DeckC
 }
 
 /** Publish one answer file per hold of the card: temp file, no-clobber hard link, unlink. */
-async function publish($: EngineInterface, card: DeckCard, answer: { option: string } | { text: string }, label: string): Promise<void> {
-  const v = await read($, view);
-  const inbox = v.summary?.inbox ?? "";
+async function publish($: EngineInterface, inbox: string, card: DeckCard, answer: { option: string } | { text: string }, label: string): Promise<void> {
   if (!inboxIsUsable(inbox)) {
     $.ui.toast("Not sent: firstmate publishes no answer folder");
     return;
@@ -220,7 +228,8 @@ async function publish($: EngineInterface, card: DeckCard, answer: { option: str
 /** Pick an answer: publish after the undo window, unless `u` comes first. */
 async function pick($: EngineInterface, card: DeckCard, answer: { option: string } | { text: string }, label: string): Promise<void> {
   await flush($);
-  const publishNow = () => publish($, card, answer, label);
+  const inbox = (await read($, view)).summary?.inbox ?? "";
+  const publishNow = () => publish($, inbox, card, answer, label);
   const timer = $.clock.after(UNDO_MS, () => {
     void flush($);
   });
@@ -321,7 +330,7 @@ async function drawPane($: EngineInterface, e: RenderInput & { component: "Pane"
     } else if (v.mode === "type" && Input !== undefined) {
       rows.push(
         Input({
-          key: "answer", label: "Answer: ", submitLabel: "send", autoFocus: true,
+          key: "answer", label: "Answer", submitLabel: "send", autoFocus: true,
           onSubmit: (value) => {
             const words = value.trim();
             if (words !== "") void pick($, card, { text: words }, words);
@@ -400,6 +409,13 @@ export const register: Register = (on) => {
     if (!(await isActivated($))) return next(e);
     await $.command.register({ name: COMMAND, description: "Open Captain's Call: firstmate's pending decisions, one card at a time." });
     await start($);
+    return next(e);
+  });
+
+  // Exit or /clear inside the undo window sends the pick at once.
+  on("session.end", async ($, e, next) => {
+    if (!(await isActivated($))) return next(e);
+    await flush($);
     return next(e);
   });
 

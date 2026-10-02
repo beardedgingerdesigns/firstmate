@@ -7,6 +7,7 @@ import {
   INBOX,
   NOW,
   PANE,
+  SESSION,
   SUMMARY,
   abovePrompt,
   isStock,
@@ -168,15 +169,21 @@ describe("Captain's Call cards", () => {
     expect(journal.toasts.at(-1)).toBe("Undone: nothing was sent");
   });
 
-  test("a /clear inside the undo window sends the pick instead of dropping it", async ($, on) => {
-    const { journal, files } = world(on);
+  test("a /clear inside the undo window sends the pick at once, and the deck comes back without a session.start", async ($, on) => {
+    const { journal, files, clock, clearView } = world(on);
     await $.session.start(sessionStart);
     const ui = await $.ui.mount(PANE);
     await ui.press({ key: "rec" });
     expect(journal.writes).toHaveLength(0);
-    await $.session.start(sessionStart);
+    // A real /clear: session.end with reason clear, the view value back at its initial,
+    // and no session.start after it.
+    await $.session.end({ reason: "clear", sessionId: SESSION, resume: { id: SESSION } });
+    clearView();
     const link = journal.runs.find((argv) => argv[0] === "/bin/ln")!;
     expect(JSON.parse(files.get(link[2]!)!.text).answer).toEqual({ option: "add" });
+    await clock.advance(3000);
+    expect(journal.toasts).not.toContain("Not sent: firstmate publishes no answer folder");
+    expect(journal.statuses.at(-1)).toContain("3 calls");
     expect(textOf(await ui.drawn())).toContain("sent: Add the field and fill October");
   });
 
@@ -241,7 +248,7 @@ describe("Captain's Call cards", () => {
   });
 
   test("status follows answers_seen and survives a restart through the store", async ($, on) => {
-    const { clock, publish, journal } = world(on);
+    const { clock, publish, journal, clearView } = world(on);
     await $.session.start(sessionStart);
     const ui = await $.ui.mount(PANE);
     await ui.press({ key: "option-1" });
@@ -254,9 +261,15 @@ describe("Captain's Call cards", () => {
     await clock.advance(3000);
     expect(textOf(await ui.drawn())).toContain("done: Add the field and fill October");
     expect(await ui.find({ key: "option-1" })).toBeUndefined();
-    // A restart (or /clear) reloads the pane's own records from the store.
+    // A restart reloads the pane's own records from the store, and so does a /clear,
+    // which resets the view with no session.start.
     await $.session.start(sessionStart);
     expect(textOf(await ui.drawn())).toContain("done: Add the field and fill October");
+    await $.session.end({ reason: "clear", sessionId: SESSION, resume: { id: SESSION } });
+    clearView();
+    await clock.advance(3000);
+    expect(textOf(await ui.drawn())).toContain("done: Add the field and fill October");
+    expect(await ui.find({ key: "option-1" })).toBeUndefined();
     publish(summaryDoc({ answers_seen: [{ file, hold_id: "tq-inside", status: "rejected", reason: "question-changed", at: "x" }] }));
     await clock.advance(3000);
     expect(textOf(await ui.drawn())).toContain("not taken (question-changed); answer again");

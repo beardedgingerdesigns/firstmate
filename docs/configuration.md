@@ -79,6 +79,7 @@ Each effective `FM_HOME` contains private operational directories.
 - Captain preferences and optional shared captain preferences.
 - Learnings, backlog, briefs, and scout reports.
 - Structured answer options for captain holds under `data/captain-hold-options/` (`bin/fm-captain-hold.sh`).
+- Per-project site records under `data/sites/` (`bin/fm-release.sh`), published as the home summary's `sites[]`.
 - Explicitly installed content-addressed extension packages under `data/extensions/packages/`.
 
 `state/` holds runtime records:

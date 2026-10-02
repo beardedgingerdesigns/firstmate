@@ -36,6 +36,7 @@
 #   fm-captain-hold.sh reconcile list
 #   fm-captain-hold.sh reconcile close <task-id> --evidence-file <path>
 #   fm-captain-hold.sh reconcile note <task-id> --note-file <path>
+#   fm-captain-hold.sh reconcile supersede <task-id> --by <task-id> --evidence-file <path>
 #
 # `hold` places an existing task under an active captain hold, or creates the
 # task first when no work item exists to hold (--title required to create; the
@@ -117,7 +118,12 @@
 # captain's words, and closes the task. `note` is the still-active outcome: it
 # appends one dated `Captain hold reconciled:` note and leaves the hold in
 # place. A normal answer also retires the request because the call is settled.
-# `list` is the read-only enumeration.
+# `list` is the read-only enumeration. `supersede` closes a call the invoking
+# agent raised again under a new task id; it needs no board request because the
+# replacement, which must already be an open captain call, keeps the question in
+# front of the captain. It writes the same `reconciled` record under the
+# `Reconciliation evidence:` label, so the close never reads as the captain's
+# words.
 # docs/captain-hold-lifecycle.md owns the semantics.
 #
 # A channel's ONLY job is to turn whatever it received into those keyed lines
@@ -185,7 +191,8 @@
 # backlog close and, on 0, returns the row to Queued with its deliverable
 # recorded instead (bin/fm-backlog-transition-lib.sh owns that transition), so
 # holding the very work item a question gates is safe; only `answer` with the
-# captain's words or evidence-backed `reconcile close` closes the call.
+# captain's words or evidence-backed `reconcile close` or `reconcile supersede`
+# closes the call.
 # bin/fm-watch.sh asks it when an ordinary
 # crew task reaches a due stale alarm - its open backlog hold need not appear in
 # the task's last status line - and on a 0 bounds repeated alarms from new pane
@@ -1521,6 +1528,7 @@ command_reconcile() {
     list)    reconcile_list "$@" ;;
     close)   reconcile_close "$@" ;;
     note)    reconcile_note "$@" ;;
+    supersede) reconcile_supersede "$@" ;;
     *) usage >&2; exit 2 ;;
   esac
 }
@@ -1605,6 +1613,55 @@ reconcile_close() {
     || fail "could not publish the reconciled captain-held task $id to its parent"
   reconcile_request_retire "$id"
   printf 'reconciled: %s\n' "$id"
+}
+
+# The replaced outcome. The open replacement call is what keeps the question
+# in front of the captain, so no board request is needed to retire this one.
+reconcile_supersede() {
+  local id=${1:-} by='' evidence_file='' show state hold_kind body occurrence
+  [ "$#" -ge 1 ] || { usage >&2; exit 2; }
+  shift
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --by) shift; by=${1:-} ;;
+      --evidence-file) shift; evidence_file=${1:-} ;;
+      *) usage >&2; exit 2 ;;
+    esac
+    shift
+  done
+  validate_slug task-id "$id"
+  validate_slug replacement-task-id "$by"
+  [ "$by" != "$id" ] || fail "task $id cannot supersede itself"
+  [ -n "$evidence_file" ] || fail "--evidence-file is required; a superseded call records why"
+  load_decision "$evidence_file"
+  acquire_task_control_lock "$id"
+  require_tasks_axi
+  command_open "$by" || fail "replacement $by is not an open captain call; $id stays open"
+  task_show_or_fail "$id" "captain-held task $id is absent from this home's configured backlog (data directory $DATA)"
+  state=$(show_field "$show" state)
+  hold_kind=$(show_field_value "$show" hold_kind)
+  body=$(show_field "$show" body)
+  occurrence=$(( $(resolution_record_count "$body") + 1 ))
+  if body_has_resolution_record "$body" \
+    && [ "$(recorded_decision_digest "$body" || true)" = "$DECISION_DIGEST" ]; then
+    [ "$(recorded_resolution_mode "$body" || true)" = reconciled ] \
+      || fail "task $id records this text as a captain answer; it was not superseded"
+    occurrence=$(resolution_record_count "$body")
+  else
+    [ "$state" != "done" ] || fail "task $id is already closed"
+    [ "$hold_kind" = captain ] \
+      || fail "task $id is not held for the captain; there is no captain call to supersede"
+    write_resolution_record "$id" reconciled "$body"
+  fi
+  if [ "$state" != "done" ]; then
+    close_answered "$id" 0 || fail "could not close superseded captain-held task $id"
+  fi
+  remove_interrupted_answer_stamp "$id"
+  publish_parent_hold "$id" "$occurrence" resolved "superseded by $by"
+  [ "$PARENT_HOLD_PUBLISHED" = 1 ] \
+    || fail "could not publish the superseded captain-held task $id to its parent"
+  reconcile_request_retire "$id"
+  printf 'superseded: %s\n' "$id"
 }
 
 # The still-active outcome. The hold survives, so the call stays the captain's

@@ -42,6 +42,7 @@ It never reads report bodies, review artifacts, terminal output, or chat.
 | `bind`, `unbind`, `binding` | Record that a captured-answer source feeds the keyed-answer intake. | [Source bindings](#source-bindings) |
 | `reconcile-requests` | Internal intake that records a reconcile request from a board selection. | [Reconcile](#reconcile-re-check-reality-never-a-blind-close) |
 | `reconcile close`, `reconcile note`, `reconcile list` | Retire or list pending reconcile requests. | [Verifying and retiring a request](#verifying-and-retiring-a-request) |
+| `reconcile supersede` | Close a call raised again under a new task id, without a board request. | [Superseding a call](#superseding-a-call) |
 | `diverged` | Read-only report of a call whose two records disagree. | [Record divergence](#record-divergence) |
 
 ### Creating a hold (`hold`)
@@ -175,7 +176,7 @@ The refusal names the record and the validation reason, so the captain can repai
 ### What `--force` does not lift
 
 `--force` does not lift the deferral, because it authorizes discarding unlanded work, never the captain's question.
-Only `answer` with the captain's words or evidence-backed `reconcile close` resolves the call, by either closing the question or releasing the gated work.
+Only `answer` with the captain's words, evidence-backed `reconcile close`, or `reconcile supersede` resolves the call, by either closing the question or releasing the gated work.
 `bin/fm-backlog-transition-lib.sh` owns the transition and its record, and `bin/fm-captain-hold.sh --help` owns the predicate's contract.
 
 ## Answer-time resolution
@@ -307,7 +308,15 @@ A successful normal answer also retires any pending request, because an answered
 
 Every retirement is checked.
 If request removal fails after an answer, close, or note is already durable, the durable outcome stands, but the command fails and leaves the pending request visible for retry.
-No path here closes a captain call without either the captain's words through `answer` or the evidence through `reconcile close`.
+No path here closes a captain call without the captain's words through `answer`, the evidence through `reconcile close`, or an open replacement call through `reconcile supersede`.
+
+### Superseding a call
+
+`reconcile supersede <task-id> --by <task-id> --evidence-file <path>` closes a call the invoking agent raised again under a new task id, such as a release call that aged off the Decisions page (`bin/fm-release.sh card`).
+It needs no board request, because the replacement must already be an open captain call, so the question never leaves the captain.
+It writes the same `reconciled` record with the supplied evidence under the `Reconciliation evidence:` label, so the close never reads as the captain's answer.
+It retires any pending reconcile request for the superseded call, because the replacement carries the question now.
+An exact retry is idempotent.
 
 ## Card hygiene: a landed subject is not a live call
 

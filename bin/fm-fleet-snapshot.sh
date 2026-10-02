@@ -262,8 +262,12 @@ carries generated_at (equal to generated),
 fleet[] {name,kind crewmate|secondmate,task_id,project,model,state
 working|parked|done|blocked|paused|failed|unknown,since (time of the last
 status event)} bounded like active_children, answers_inbox (the absolute drop
-folder, or null when unavailable), and answers_seen (bin/fm-procevent-answer-drop.sh
-summary). A captain hold is actionable only when every blocker is Done, any
+folder, or null when unavailable), answers_seen (bin/fm-procevent-answer-drop.sh
+summary), and sites[] {project,staging_url,production_url,staging_sha (the
+commit staging runs),waiting (changes not yet in production),last_deploy
+{env,result,at}}, one row per data/sites record,
+sorted by project (bin/fm-release.sh owns the record and its fields; records that
+do not parse are left out). A captain hold is actionable only when every blocker is Done, any
 hold-until date has arrived, and an undated hold remains below the aging threshold.
 Cross-home collection uses FM_SNAPSHOT_SECONDMATES (default 20, 0 lifts the
 count bound) and FM_SNAPSHOT_SECONDMATE_MAX_BYTES.
@@ -979,7 +983,28 @@ main_inventory_json() {  # <backlog-json-file> <tasks-json-file>
 # validated parent read needs.
 # This mode never reads parent events or terminal text and never aggregates
 # nested secondmates.
-secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answer-drop-json-file>
+# One row per data/sites/<project>.json record (bin/fm-release.sh owns the
+# record). A file that is not a JSON object is left out rather than failing the
+# summary.
+sites_json() {
+  local file
+  for file in "$DATA"/sites/*.json; do
+    [ -f "$file" ] || continue
+    jq -c 'select(type == "object")' "$file" 2>/dev/null || true
+  done | jq -s '
+    def s($n): if type == "string" then (if length > $n then .[:$n] + "…" else . end) else null end;
+    map({project:(.project | s(120)),
+         staging_url:(.staging_url | s(500)),
+         production_url:(.production_url | s(500)),
+         staging_sha:(.staging_sha | s(40)),
+         waiting:(.waiting | if type == "number" then . else null end),
+         last_deploy:(.last_deploy | if type == "object"
+           then {env:(.env | s(20)),result:(.result | s(20)),at:(.at | s(40))} else null end)}
+       | select(.project != null))
+    | sort_by(.project)'
+}
+
+secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answer-drop-json-file> <sites-json-file>
   jq -n \
     --arg generated "$SNAPSHOT_NOW" \
     --argjson generated_epoch "$SNAPSHOT_EPOCH" \
@@ -990,7 +1015,7 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answe
     --argjson landed_n "$FM_SNAPSHOT_SECONDMATE_LANDED_PER_HOME" \
     --slurpfile backlog "$1" \
     --slurpfile tasks "$2" --slurpfile contributions "$CONTRIBUTIONS_JSON_FILE" \
-    --slurpfile answers "$3" "$FM_LANDED_JQ_DEFS"'
+    --slurpfile answers "$3" --slurpfile sites "$4" "$FM_LANDED_JQ_DEFS"'
     ($backlog[0]) as $backlog
     | ($tasks[0]) as $tasks
     | def trunc($n):
@@ -1146,6 +1171,7 @@ secondmate_home_summary_json() {  # <backlog-json-file> <tasks-json-file> <answe
         decisions_open:$decisions_all[:$decisions_n],
         answers_inbox:($answers[0].answers_inbox // null),
         answers_seen:($answers[0].answers_seen // []),
+        sites:$sites[0],
         holds:$holds_all[:$queued_n],
         queued:([$queued_all[] | {id:(.id | trunc(120)),title:(.title | trunc(120)),
           blocked_by:((.blocked_by // null) | if . == null then null else trunc(120) end),
@@ -2102,7 +2128,10 @@ if [ "$OUTPUT_MODE" = secondmate-home-summary ]; then
     "$SCRIPT_DIR/fm-procevent-answer-drop.sh" summary > "$ANSWER_DROP_JSON_FILE" 2>/dev/null \
     && jq -e 'type == "object"' "$ANSWER_DROP_JSON_FILE" >/dev/null 2>&1 \
     || printf '{"answers_inbox":null,"answers_seen":[]}\n' > "$ANSWER_DROP_JSON_FILE"
-  secondmate_home_summary_json "$BACKLOG_JSON_FILE" "$TASKS_JSON_FILE" "$ANSWER_DROP_JSON_FILE" \
+  SITES_JSON_FILE="$JSON_TRANSPORT_DIR/sites.json"
+  sites_json > "$SITES_JSON_FILE" \
+    || { echo "fm-fleet-snapshot: site records unavailable" >&2; exit 1; }
+  secondmate_home_summary_json "$BACKLOG_JSON_FILE" "$TASKS_JSON_FILE" "$ANSWER_DROP_JSON_FILE" "$SITES_JSON_FILE" \
     || { echo "fm-fleet-snapshot: secondmate home summary failed" >&2; exit 1; }
   exit 0
 fi

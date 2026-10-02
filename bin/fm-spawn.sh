@@ -5516,4 +5516,10 @@ SPAWN_ACCOUNT=
 [ -z "$WORKER_ACCOUNT_PROVIDER" ] || SPAWN_ACCOUNT="$SPAWN_ACCOUNT account_provider=$WORKER_ACCOUNT_PROVIDER"
 # Opt-in fleet activity ledger (docs/fleet-ledger.md); off costs one file test.
 [ ! -e "$CONFIG/fleet-ledger" ] || [ "$RELAUNCH" -eq 1 ] || FM_HOME=$FM_HOME FM_STATE_OVERRIDE=$STATE FM_CONFIG_OVERRIDE=$CONFIG "$SCRIPT_DIR/fm-fleet-ledger.sh" dispatched "$ID" "$KIND" "${PROJ_ABS##*/}" "$HARNESS" "$MODEL" || true
+# The dispatch-resolve decision log records the profile actually launched
+# next to the resolver's pick (docs/configuration.md "Typed dispatch resolution").
+[ ! -e "$STATE/dispatch-resolve.log" ] || [ "$RELAUNCH" -eq 1 ] || { jq -nc --argjson ts "$(date +%s)" --arg task "$ID" \
+  --arg harness "$HARNESS" --arg model "$MODEL" --arg effort "$EFFORT" \
+  '{ts: $ts, event: "dispatched", task: $task, profile: {harness: $harness, model: (if $model == "" then null else $model end), effort: (if $effort == "" then null else $effort end)}}' \
+  >> "$STATE/dispatch-resolve.log"; } 2>/dev/null || true
 echo "spawned $ID harness=$HARNESS kind=$KIND$SPAWN_DELIVERY window=$META_WINDOW worktree=$WT$SPAWN_ACCOUNT"

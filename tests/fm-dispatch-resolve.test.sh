@@ -234,7 +234,7 @@ assert_contains "$argv" '@/dev/fd/3' "the header is read from a file descriptor"
 assert_equals "Authorization: Bearer $KEY" "$(cat "$LOG/header")" "curl receives the bearer header on fd 3"
 assert_equals $'curl:clean\nquota-axi:clean' "$(cat "$LOG/child-env")" "the API key is absent from every child environment"
 body=$(cat "$LOG/body")
-assert_equals 'jev-latest' "$(jq -r .model <<<"$body")" "default model is jev-latest"
+assert_equals 'jev-1.13.0' "$(jq -r .model <<<"$body")" "the request pins jev-1.13.0"
 assert_equals 'pager' "$(jq -r .state.task.project <<<"$body")" "project rides in the state"
 assert_contains "$(jq -r .state.task.brief <<<"$body")" 'off-by-one in the pager' "a brief without task headings rides whole in the state"
 assert_equals '["rule"]' "$(jq -c '.questions | keys' <<<"$body")" "only the rule Choice is asked"
@@ -245,6 +245,42 @@ assert_not_contains "$body" 'SECRET-WHY-TEXT' "why text never leaves the machine
 assert_not_contains "$body" 'spendPriority' "quota never leaves the machine"
 assert_not_contains "$body" 'cursor-grok' "use profiles never leave the machine"
 pass "clear: one rule Choice request, key on the fd header only, spendPriority argmax over every candidate"
+
+# --- decision log: one line per call, never the key or brief text -------------
+DECISION_LOG="$HOME_DIR/state/dispatch-resolve.log"
+TASK_BRIEF="$TMP_ROOT/data/pager-fix-a1/brief.md"
+mkdir -p "$HOME_DIR/state" "$(dirname "$TASK_BRIEF")"
+cp "$BRIEF" "$TASK_BRIEF"
+reset_log
+rm -f "$DECISION_LOG"
+run code out err "$TASK_BRIEF" --project pager
+write_response "$RESPONSE" rule_4 0.9
+TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
+write_response "$RESPONSE" rule_4 0.4
+TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
+FAKE_CURL_HTTP=500 TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
+assert_equals 4 "$(wc -l < "$DECISION_LOG" | tr -d ' ')" "every call appends exactly one decision line"
+assert_equals '{"event":"resolve","task":"pager-fix-a1","project":"pager","status":"off","picked":null,"rule":null,"confidence":null,"model":null,"profile":null,"reason":"TYPESAFE_API_KEY absent"}' \
+  "$(sed -n 1p "$DECISION_LOG" | jq -c 'del(.ts)')" "the off call is logged"
+assert_equals '{"event":"resolve","task":"pager-fix-a1","project":"pager","status":"clear","picked":"rule_4","rule":"rule_4","confidence":0.9,"model":"jev-1.13.0","profile":{"harness":"cursor","model":"cursor-grok-4.6-medium","effort":null},"reason":null}' \
+  "$(sed -n 2p "$DECISION_LOG" | jq -c 'del(.ts)')" "a clear call logs the rule, confidence, model, and resolved profile"
+assert_equals 'ambiguous|null|confidence 0.4 below floor 0.6' "$(sed -n 3p "$DECISION_LOG" | jq -r '"\(.status)|\(.profile)|\(.reason)"')" "an ambiguous call logs no profile and its reason"
+assert_equals 'error' "$(sed -n 4p "$DECISION_LOG" | jq -r .status)" "an API failure is logged"
+[[ "$(sed -n 2p "$DECISION_LOG" | jq -r .ts)" =~ ^[0-9]+$ ]] || fail "decision lines carry an epoch timestamp"
+log_text=$(cat "$DECISION_LOG")
+assert_not_contains "$log_text" "$KEY" "the key never reaches the decision log"
+assert_not_contains "$log_text" 'off-by-one' "the brief text never reaches the decision log"
+rm -f "$DECISION_LOG"
+chmod 500 "$HOME_DIR/state"
+write_response "$RESPONSE" rule_4 0.9
+TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
+chmod 700 "$HOME_DIR/state"
+assert_absent "$DECISION_LOG" "an unwritable state directory gets no decision log"
+expect_code 0 "$code" "an unwritable decision log still exits 0"
+assert_contains "$out" '  status: clear' "an unwritable decision log does not change the outcome"
+assert_equals '' "$err" "an unwritable decision log prints nothing"
+rm -rf "$HOME_DIR/state"
+pass "decision log: one JSON line per call with outcome and profile, no secrets, failures ignored"
 
 # --- never-send list: a match or a bad list withholds the request -------------
 NEVER_SEND="$HOME_DIR/config/dispatch-never-send"

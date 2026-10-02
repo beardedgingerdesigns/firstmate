@@ -258,14 +258,16 @@ write_response "$RESPONSE" rule_4 0.9
 TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
 write_response "$RESPONSE" rule_4 0.4
 TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
-FAKE_CURL_HTTP=500 TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
+printf '{"detail":[{"loc":["body","state","task","brief"],"input":"off-by-one in the pager"}]}' > "$TMP_ROOT/http-422.json"
+FAKE_CURL_RESPONSE="$TMP_ROOT/http-422.json" FAKE_CURL_HTTP=422 TYPESAFE_API_KEY=$KEY run code out err "$TASK_BRIEF" --project pager
+assert_contains "$out" 'off-by-one in the pager' "a non-200 body excerpt still reaches stdout"
 assert_equals 4 "$(wc -l < "$DECISION_LOG" | tr -d ' ')" "every call appends exactly one decision line"
 assert_equals '{"event":"resolve","task":"pager-fix-a1","project":"pager","status":"off","picked":null,"rule":null,"confidence":null,"model":null,"profile":null,"reason":"TYPESAFE_API_KEY absent"}' \
   "$(sed -n 1p "$DECISION_LOG" | jq -c 'del(.ts)')" "the off call is logged"
 assert_equals '{"event":"resolve","task":"pager-fix-a1","project":"pager","status":"clear","picked":"rule_4","rule":"rule_4","confidence":0.9,"model":"jev-1.13.0","profile":{"harness":"cursor","model":"cursor-grok-4.6-medium","effort":null},"reason":null}' \
   "$(sed -n 2p "$DECISION_LOG" | jq -c 'del(.ts)')" "a clear call logs the rule, confidence, model, and resolved profile"
 assert_equals 'ambiguous|null|confidence 0.4 below floor 0.6' "$(sed -n 3p "$DECISION_LOG" | jq -r '"\(.status)|\(.profile)|\(.reason)"')" "an ambiguous call logs no profile and its reason"
-assert_equals 'error' "$(sed -n 4p "$DECISION_LOG" | jq -r .status)" "an API failure is logged"
+[[ "$(sed -n 4p "$DECISION_LOG" | jq -r '"\(.status)|\(.reason)"')" =~ ^error\|http\ 422\ after\ [0-9]+\ ms$ ]] || fail "an API failure logs only its status and latency"
 [[ "$(sed -n 2p "$DECISION_LOG" | jq -r .ts)" =~ ^[0-9]+$ ]] || fail "decision lines carry an epoch timestamp"
 log_text=$(cat "$DECISION_LOG")
 assert_not_contains "$log_text" "$KEY" "the key never reaches the decision log"

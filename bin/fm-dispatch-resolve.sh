@@ -252,9 +252,9 @@ done < <(jq -r '
 
 RULE_COUNT=$(jq -r '(.rules // []) | length' "$RULES")
 
-emit_error() {
+emit_error() {  # <reason> [<log-reason>]
   local reason=$1
-  log_decision error "$reason"
+  log_decision error "${2:-$reason}"
   echo "dispatch-resolve: error ($reason)" >&2
   printf 'dispatch-resolve:\n  status: error\n  reason: %s\n' "$reason"
   exit 0
@@ -353,7 +353,7 @@ command -v curl >/dev/null 2>&1 || emit_error "curl not installed"
     --data-binary @- 2>/dev/null) || HTTP=000
   T1=$(fm_timing_now_ms)
   LAT_MS=$(( T1 - T0 ))
-  [ "$HTTP" = 200 ] || emit_error "http $HTTP after ${LAT_MS} ms: $(head -c 200 "$RESP_FILE" 2>/dev/null | tr '\n' ' ')"
+  [ "$HTTP" = 200 ] || emit_error "http $HTTP after ${LAT_MS} ms: $(head -c 200 "$RESP_FILE" 2>/dev/null | tr '\n' ' ')" "http $HTTP after ${LAT_MS} ms"
 jq -e --slurpfile rules "$RULES" '
     (($rules[0].rules | to_entries | map("rule_" + ((.key + 1) | tostring))) + ["default"] | sort) as $choices |
     (.answers.rule.choice | type) == "string" and

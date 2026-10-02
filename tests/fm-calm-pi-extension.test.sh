@@ -4152,7 +4152,9 @@ export default function (pi: ExtensionAPI): void {
 }
 TS
   printf '%s\n' '{"tui.input.submit":"alt+s"}' >"$config/keybindings.json"
-  printf '%s\n' '{"hideThinkingBlock":true}' >"$config/settings.json"
+  # This fixture inspects the complete restored transcript through tmux
+  # scrollback. Pi 1.0 defaults to fullscreen, whose viewport omits older rows.
+  printf '%s\n' '{"hideThinkingBlock":true,"tuiMode":"regular"}' >"$config/settings.json"
   now=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
   cat >"$session_file" <<JSON
 {"type":"session","version":3,"id":"11111111-1111-4111-8111-111111111111","timestamp":"$now","cwd":"$project"}
@@ -4380,19 +4382,45 @@ if (!synthetic || synthetic.display) process.exit(1);
 JS
   chrome=$(find_chrome) \
     || fail "Chrome or Chromium is required for rendered export DOM assertions; set FM_CHROME_BIN to one"
-  chrome_report=$(render_export_dom "$chrome" "$export_file" "$export_dom" "$version") \
+  # Pi 0.99+ retains display:false messages in the DOM behind a show/hide
+  # toggle. Assert browser-computed visibility, not absence from the HTML.
+  node - "$export_file" "$export_file.probe.html" <<'JS'
+const fs = require("node:fs");
+const probe = `<script>
+window.addEventListener("load", () => {
+  const messages = document.getElementById("messages");
+  if (!messages) return;
+  const visible = [...messages.children].filter((element) =>
+    element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden"
+  );
+  const result = document.createElement("script");
+  result.id = "fm-export-visibility";
+  result.type = "application/json";
+  result.textContent = JSON.stringify({
+    text: visible.map((element) => element.textContent).join("\\n"),
+    hooks: visible.filter((element) => element.classList.contains("hook-message")).length,
+  });
+  document.body.appendChild(result);
+});
+</script>`;
+fs.writeFileSync(process.argv[3], fs.readFileSync(process.argv[2], "utf8").replace("</body>", probe + "</body>"));
+JS
+  chrome_report=$(render_export_dom "$chrome" "$export_file.probe.html" "$export_dom" "$version") \
     || fail "could not render calm-mode HTML export DOM: $chrome_report"
   node - "$export_dom" <<'JS' || fail "rendered export DOM violated the Calm conversation boundary"
 const dom = require("node:fs").readFileSync(process.argv[2], "utf8");
 const messages = dom.match(/<div id="messages">([\s\S]*?)<\/main>/)?.[1];
 const tree = dom.match(/<div[^>]*id="tree-container"[^>]*>([\s\S]*?)<div[^>]*id="tree-status"/)?.[1];
 if (!messages || !tree) process.exit(1);
+const visibility = JSON.parse(dom.match(/<script id="fm-export-visibility" type="application\/json">([\s\S]*?)<\/script>/)?.[1] ?? "null");
+if (!visibility) throw new Error("browser did not report export visibility");
 if (!/<div class="user-message"[^>]*>[\s\S]*Show a deterministic tool example\./.test(messages)) process.exit(1);
 if (!/<div class="assistant-message"[^>]*>[\s\S]*The deterministic tool example is complete\./.test(messages)) process.exit(1);
-if (messages.includes('<div class="hook-message"')) process.exit(1);
-if (messages.includes("[firstmate-synthetic-input]")) process.exit(1);
+if (!visibility.text.includes("Show a deterministic tool example.") || !visibility.text.includes("The deterministic tool example is complete.")) process.exit(1);
+if (visibility.hooks !== 0) process.exit(1);
+if (visibility.text.includes("[firstmate-synthetic-input]")) process.exit(1);
 for (const current of ["CURRENT_WATCHER_E2E", "CURRENT_TURN_END_E2E", "CURRENT_AWAY_E2E", "CURRENT_FROM_FIRSTMATE_E2E", "CURRENT_LAUNCH_BRIEF_E2E"]) {
-  if (!messages.includes(current)) process.exit(1);
+  if (!visibility.text.includes(current)) process.exit(1);
 }
 if (!tree.includes("firstmate-synthetic-input") || !tree.includes("/tmp/probe.status")) process.exit(1);
 JS

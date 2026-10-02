@@ -1921,7 +1921,7 @@ The `answer-drop` adapter (`bin/fm-procevent-answer-drop.sh`) lets a local reade
 The summary publishes the drop folder as `answers_inbox`, each answerable decision's `options`, full `question` text, and its `question_fingerprint`, and recent outcomes as `answers_seen`; the [`bin/fm-fleet-snapshot.sh --help`](../bin/fm-fleet-snapshot.sh) text owns those fields and the fingerprint definition.
 The writer publishes one complete JSON file per answer into that folder, and the adapter header owns the file contract (exact file name, hard-link publish) and every outcome reason.
 The source registers itself the first time a summary refresh finds an answer waiting, and `arm` registers it at once; from then on its listener polls the folder and stays armed.
-Each answer is validated, checked against the hold's current fingerprint, fed to `bin/fm-captain-hold.sh answers --source aios-ui`, and archived under `handled/` or `rejected/`, so a file is never deleted and replay after a restart is idempotent.
+Each answer is validated, checked against the hold's current fingerprint, fed to `bin/fm-captain-hold.sh answers --source <its source>` (`aios-ui` or `fm-deck`, the only writers accepted), and archived under `handled/` or `rejected/`, so a file is never deleted and replay after a restart is idempotent.
 Every captured round still publishes an ordinary `check` wake before it is applied, so Firstmate acts on the recorded decision as it would on any other channel's answer.
 
 **Capture and publish results**

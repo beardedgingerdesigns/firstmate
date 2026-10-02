@@ -12,12 +12,14 @@
 #   fm-procevent-answer-drop.sh source-id
 #   fm-procevent-answer-drop.sh retire
 #
-# A local structured answer channel (aios-ui, claude-os ADR 0012) answers an
-# open captain hold by dropping one JSON file into this home's drop folder,
-# state/answer-drop/, which the home summary publishes as answers_inbox. This
-# adapter turns each file into one keyed line for bin/fm-captain-hold.sh
-# answers --source aios-ui and records the outcome in answers_seen. It never
-# decides what an answer means: the intake owns every close rule.
+# A local structured answer channel answers an open captain hold by dropping
+# one JSON file into this home's drop folder, state/answer-drop/, which the home
+# summary publishes as answers_inbox. A file's `source` names its writer and
+# must be aios-ui (claude-os ADR 0012) or fm-deck (the in-session Captain's Call
+# pane, docs/fm-deck.md); any other value is rejected malformed.
+# This adapter turns each file into one keyed line for bin/fm-captain-hold.sh
+# answers --source <the file's source> and records the outcome in answers_seen.
+# It never decides what an answer means: the intake owns every close rule.
 #
 # arm        Create the drop folder and register the persistent `answer-drop`
 #            source unless it is already registered. With --if-pending it
@@ -143,13 +145,14 @@ registered() {
 now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 # Append one ledger record; keep the newest SEEN_KEEP lines once it doubles.
-seen_append() {  # <file> <hold-id> <status> <reason> [<answer> <label> <mode>]
+seen_append() {  # <file> <hold-id> <status> <reason> [<answer> <label> <mode> <source>]
   local lines tmp
   jq -cn --arg file "$1" --arg hold "$2" --arg status "$3" --arg reason "$4" --arg at "$(now_iso)" \
-    --arg answer "${5-}" --arg label "${6-}" --arg mode "${7-}" --argjson line "$([ "$#" -ge 7 ] && echo true || echo false)" '
+    --arg answer "${5-}" --arg label "${6-}" --arg mode "${7-}" --arg source "${8-}" \
+    --argjson line "$([ "$#" -ge 8 ] && echo true || echo false)" '
     {file:$file,hold_id:(if $hold == "" then null else $hold end),status:$status,
      reason:(if $reason == "" then null else $reason end),at:$at}
-    + (if $line then {line:{answer:$answer,label:$label,mode:$mode}} else {} end)' >> "$SEEN" || return 1
+    + (if $line then {line:{answer:$answer,label:$label,mode:$mode,source:$source}} else {} end)' >> "$SEEN" || return 1
   lines=$(wc -l < "$SEEN" | tr -d '[:space:]')
   if [ "${lines:-0}" -gt $((SEEN_KEEP * 2)) ]; then
     tmp=$(umask 077; mktemp "$SEEN.XXXXXX") || return 0
@@ -177,10 +180,10 @@ reject() {  # <name> <hold-id> <reason>
 
 # Feed one recorded line to the intake and settle the file from its verdict.
 # Returns 1 only when the intake printed no verdict (a transient failure).
-feed() {  # <name> <hold-id> <answer> <label> <mode>
+feed() {  # <name> <hold-id> <answer> <label> <mode> <source>
   local name=$1 hold=$2 out verdict
   out=$(printf '%s\t%s\t%s\t%s\n' "$hold" "$3" "$4" "$5" \
-    | "$SCRIPT_DIR/fm-captain-hold.sh" answers --source aios-ui 2>/dev/null) || true
+    | "$SCRIPT_DIR/fm-captain-hold.sh" answers --source "$6" 2>/dev/null) || true
   verdict=$(printf '%s\n' "$out" | grep -E "^(closed|skipped|refused): " | head -n 1)
   case "$verdict" in
     "closed: $hold") seen_append "$name" "$hold" resolved "" && archive "$name" handled ;;
@@ -203,7 +206,7 @@ load_holds() {
 }
 
 process_file() {  # <name>
-  local name=$1 path="$INBOX/$1" last status hold size doc rec fp answer label mode note open
+  local name=$1 path="$INBOX/$1" last status hold size doc rec fp answer label mode note open source
   [ -f "$path" ] && [ ! -L "$path" ] || return 0
   last=$(seen_latest "$name")
   status=$(printf '%s' "$last" | jq -r '.status // empty' 2>/dev/null)
@@ -213,7 +216,8 @@ process_file() {  # <name>
     picked_up)
       hold=$(printf '%s' "$last" | jq -r '.hold_id')
       feed "$name" "$hold" "$(printf '%s' "$last" | jq -r '.line.answer')" \
-        "$(printf '%s' "$last" | jq -r '.line.label')" "$(printf '%s' "$last" | jq -r '.line.mode')"
+        "$(printf '%s' "$last" | jq -r '.line.label')" "$(printf '%s' "$last" | jq -r '.line.mode')" \
+        "$(printf '%s' "$last" | jq -r '.line.source // "aios-ui"')"
       return
       ;;
   esac
@@ -226,7 +230,7 @@ process_file() {  # <name>
   fi
   doc=$(jq -c --arg hold "$hold" '
     def text: type == "string" and (gsub("\\s"; "") | length) > 0;
-    select(type == "object" and .hold_id == $hold and .source == "aios-ui"
+    select(type == "object" and .hold_id == $hold and (.source | IN("aios-ui", "fm-deck"))
       and (.question_fingerprint | type) == "string" and (.question_fingerprint | test("^[0-9a-f]{64}$"))
       and (.answered_at | type) == "string"
       and ((.note // "") | type) == "string"
@@ -275,8 +279,9 @@ process_file() {  # <name>
     return
   fi
   if [ "$(printf '%s' "$rec" | jq -r '.kind // ""')" = captain ]; then mode=; else mode=release; fi
-  seen_append "$name" "$hold" picked_up "" "$answer" "$label" "$mode" || return 1
-  feed "$name" "$hold" "$answer" "$label" "$mode"
+  source=$(printf '%s' "$doc" | jq -r '.source')
+  seen_append "$name" "$hold" picked_up "" "$answer" "$label" "$mode" "$source" || return 1
+  feed "$name" "$hold" "$answer" "$label" "$mode" "$source"
 }
 
 cmd_arm() {

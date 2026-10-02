@@ -1,0 +1,10 @@
+{
+  "name": "fm-deck",
+  "version": "1.0.0",
+  "description": "Firstmate deck for Claude Code: the Captain's Call decisions pane (/calls) and the Deck status line and band, reading the firstmate home summary. Its hooks module may load through CLAUDE_CODE_ENABLE_FUNCTION_HOOKS or Claude Code's tengu_plugin_hooks_modules rollout flag, but the mod activates only when CLAUDE_CODE_ENABLE_FUNCTION_HOOKS is exactly 1 and is otherwise a complete no-op.",
+  "author": {
+    "name": "Firstmate",
+    "url": "https://github.com/kunchenguid/firstmate"
+  },
+  "types": "./types/index.d.ts"
+}

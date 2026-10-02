@@ -33,9 +33,9 @@ hold() { in_home "$ROOT/bin/fm-captain-hold.sh" hold "$@" >/dev/null; }
 summary() { in_home "$ROOT/bin/fm-fleet-snapshot.sh" --secondmate-home-summary; }
 sha() { printf '%s' "$1" | { shasum -a 256 2>/dev/null || sha256sum; } | awk '{print $1}'; }
 decision() { summary | jq -c --arg id "$1" '.decisions_open[] | select(.id == $id)'; }
-drop() {  # <name> <hold-id> <fingerprint> <answer-json> [note]
-  jq -cn --arg h "$2" --arg fp "$3" --argjson a "$4" --arg note "${5-}" \
-    '{hold_id:$h,question_fingerprint:$fp,answer:$a,answered_at:"2026-10-01T00:00:00Z",source:"aios-ui"}
+drop() {  # <name> <hold-id> <fingerprint> <answer-json> [note]; DROP_SOURCE overrides aios-ui
+  jq -cn --arg h "$2" --arg fp "$3" --argjson a "$4" --arg note "${5-}" --arg src "${DROP_SOURCE:-aios-ui}" \
+    '{hold_id:$h,question_fingerprint:$fp,answer:$a,answered_at:"2026-10-01T00:00:00Z",source:$src}
      + (if $note == "" then {} else {note:$note} end)' > "$INBOX/$1"
 }
 seen() { in_home "$ADAPTER" summary | jq -r --arg f "$1" '.answers_seen[] | select(.file == $f) | "\(.status) \(.reason // "")"'; }
@@ -129,6 +129,29 @@ assert_equals "$(seen w-gate-10.json)" "resolved " "held work item answer resolv
 assert_contains "$(body_of w-gate)" "Resolution mode: released" "a held work item is released, not completed"
 assert_equals "$(cd "$HOME_DIR" && tasks-axi show w-gate | sed -n 's/^  state: //p')" queued "released work stays open"
 pass "close mode comes from the hold, not the file"
+
+# --- source allow-list -------------------------------------------------------------
+hold q-deck --title "Deck" --reason "Deck?" --option a=A
+hold q-deck-text --title "Deck text" --reason "Deck words?"
+DROP_SOURCE=fm-deck drop q-deck-20.json q-deck "$(sha "Deck?")" '{"option":"a"}'
+DROP_SOURCE=fm-deck drop q-deck-text-21.json q-deck-text "$(sha "Deck words?")" '{"text":"later today"}'
+DROP_SOURCE=someone-else drop q-deck-22.json q-deck "$(sha "Deck?")" '{"option":"a"}'
+round 20
+assert_equals "$(seen q-deck-20.json)" "resolved " "an fm-deck option answer resolves"
+assert_contains "$(body_of q-deck)" "Captain answered this call through fm-deck." "intake records the fm-deck source"
+assert_equals "$(seen q-deck-text-21.json)" "resolved " "an fm-deck text answer resolves"
+assert_contains "$(body_of q-deck-text)" "Captain answered this call through fm-deck." "a text answer keeps its fm-deck source"
+assert_equals "$(seen q-deck-22.json)" "rejected malformed" "a source outside the allow-list is rejected"
+hold q-deck-replay --title "Deck replay" --reason "Deck replay?" --option a=A
+DROP_SOURCE=fm-deck drop q-deck-replay-23.json q-deck-replay "$(sha "Deck replay?")" '{"option":"a"}'
+round 21
+mv "$INBOX/handled/q-deck-replay-23.json" "$INBOX/q-deck-replay-23.json"
+grep -v '"file":"q-deck-replay-23.json","hold_id":"q-deck-replay","status":"resolved"' \
+  "$HOME_DIR/state/answer-drop.seen.jsonl" > "$TMP_ROOT/seen" && cp "$TMP_ROOT/seen" "$HOME_DIR/state/answer-drop.seen.jsonl"
+round 22
+assert_equals "$(seen q-deck-replay-23.json)" "resolved " "a picked-up fm-deck answer replays"
+assert_contains "$(body_of q-deck-replay)" "Captain answered this call through fm-deck." "replay keeps the recorded source"
+pass "the adapter accepts aios-ui and fm-deck sources, passes the source to the intake, and rejects any other"
 
 # --- replay and restart idempotence -------------------------------------------------
 hold q-replay --title "Replay" --reason "Replay?" --option a=A

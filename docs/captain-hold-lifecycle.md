@@ -233,7 +233,7 @@ It can never let freeform captain prose forge a task id or a mode.
 
 `bin/fm-procevent-answer-drop.sh` is the local structured channel, fed by a reader of the home summary such as aios-ui:
 
-- It calls the intake itself with `--source aios-ui`, one keyed line per answer file, because it must record each file's own outcome; its source is therefore never bound.
+- It calls the intake itself with `--source aios-ui` or `--source fm-deck`, as the answer file names, one keyed line per answer file, because it must record each file's own outcome; its source is therefore never bound.
 - It rejects an answer whose `question_fingerprint` no longer matches the hold as now worded, so an answer never lands on a question reworded after it was shown.
 - An option answer feeds the option key with its label as shown, and a text answer feeds the captain's words.
 - The close mode comes from the hold, never from the file: a row minted for the question (`kind: captain`) completes, while a held work item is released.

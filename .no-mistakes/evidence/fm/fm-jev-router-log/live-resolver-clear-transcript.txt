@@ -1,0 +1,33 @@
+## 5. live Typesafe call, quota-axi shim with a claude row -> clear
+dispatch-resolve:
+  status: clear
+  model: jev-1.13.0   latency_ms: 289   tokens: 970/147
+  rule: rule_5 (Well-specified implementation with clear acceptance criteria)   confidence: 1.0
+  probabilities: rule_9=0.0 default=0.0 rule_11=0.0 rule_13=0.0 rule_2=0.0 rule_8=0.0 rule_1=0.0 rule_3=0.0 rule_6=0.0 rule_7=0.0 rule_4=0.0 rule_5=1.0 rule_12=0.0 rule_10=0.0
+  note: rule matched
+  candidate: claude:sonnet  provider=claude  scope=all_models  remaining=79%  spendPriority=0.5  runway=through_reset  -> eligible
+  profile: --harness 'claude' --model 'sonnet' --effort 'medium'
+exit=0
+
+## 6. FM_STATE_OVERRIDE relocates the log
+dispatch-resolve: off (TYPESAFE_API_KEY absent from the environment and /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.yasZ48/.env)
+exit=0
+alt-state log:
+{"ts":1790978675,"event":"resolve","task":"lab-pager-fix-q7","project":"demo","status":"off","picked":null,"rule":null,"confidence":null,"model":null,"profile":null,"reason":"TYPESAFE_API_KEY absent"}
+
+## 7. read-only state dir: write fails, outcome unchanged
+dispatch-resolve:
+  status: clear
+  model: jev-1.13.0   latency_ms: 241   tokens: 970/147
+  rule: rule_5 (Well-specified implementation with clear acceptance criteria)   confidence: 1.0
+  probabilities: rule_10=0.0 rule_7=0.0 rule_3=0.0 rule_2=0.0 rule_1=0.0 rule_12=0.0 rule_6=0.0 rule_5=1.0 rule_4=0.0 rule_8=0.0 rule_9=0.0 default=0.0 rule_13=0.0 rule_11=0.0
+  note: rule matched
+  candidate: claude:sonnet  provider=claude  scope=all_models  remaining=79%  spendPriority=0.5  runway=through_reset  -> eligible
+  profile: --harness 'claude' --model 'sonnet' --effort 'medium'
+exit=0
+-rw-r--r--@ 1 justinlobaito  staff  1436 Oct  2 17:04 /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.yasZ48/state/dispatch-resolve.log
+
+## state/dispatch-resolve.log (tail)
+{"ts":1790978675,"event":"resolve","task":"lab-pager-fix-q7","project":"demo","status":"clear","picked":"rule_5","rule":"rule_5","confidence":1.0,"model":"jev-1.13.0","profile":{"harness":"claude","model":"sonnet","effort":"medium"},"reason":null}
+{"ts":1790978676,"event":"resolve","task":"lab-pager-fix-q7","project":"demo","status":"clear","picked":"rule_5","rule":"rule_5","confidence":1.0,"model":"jev-1.13.0","profile":{"harness":"claude","model":"sonnet","effort":"medium"},"reason":null}
+key occurrences in log: 0

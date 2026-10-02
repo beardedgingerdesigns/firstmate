@@ -1,0 +1,12 @@
+## 7b. read-only decision log file: write fails, outcome unchanged
+dispatch-resolve:
+  status: clear
+  model: jev-1.13.0   latency_ms: 242   tokens: 970/147
+  rule: rule_5 (Well-specified implementation with clear acceptance criteria)   confidence: 1.0
+  probabilities: rule_10=0.0 rule_11=0.0 rule_13=0.0 rule_3=0.0 rule_2=0.0 rule_6=0.0 default=0.0 rule_1=0.0 rule_12=0.0 rule_7=0.0 rule_9=0.0 rule_5=1.0 rule_8=0.0 rule_4=0.0
+  note: rule matched
+  candidate: claude:sonnet  provider=claude  scope=all_models  remaining=79%  spendPriority=0.5  runway=through_reset  -> eligible
+  profile: --harness 'claude' --model 'sonnet' --effort 'medium'
+exit=0
+stderr bytes: 0
+log lines before=       6 after=       6

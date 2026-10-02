@@ -1,0 +1,26 @@
+session=fm-lab-jevlog-54162-6874 lab=/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.I2U5A9
+
+## A. spawn with no decision log present
+spawned lab-jev-a1 harness=sh kind=ship mode=no-mistakes yolo=off window=fm-lab-jevlog-54162-6874:w1:p2 worktree=/Users/justinlobaito/.treehouse/demo-b98e57/1/demo
+spawn exit=0
+decision log exists after spawn: no
+
+## B. live resolve, then spawn the resolved profile
+dispatch-resolve:
+  status: clear
+  model: jev-1.13.0   latency_ms: 305   tokens: 943/147
+  rule: rule_5 (Well-specified implementation with clear acceptance criteria)   confidence: 1.0
+  probabilities: rule_9=0.0 rule_2=0.0 rule_5=1.0 rule_8=0.0 default=0.0 rule_6=0.0 rule_13=0.0 rule_12=0.0 rule_1=0.0 rule_11=0.0 rule_10=0.0 rule_7=0.0 rule_4=0.0 rule_3=0.0
+  note: rule matched
+  candidate: claude:sonnet  provider=claude  scope=all_models  remaining=79%  spendPriority=0.5  runway=through_reset  -> eligible
+  profile: --harness 'claude' --model 'sonnet' --effort 'medium'
+resolve exit=0
+spawned lab-jev-b2 harness=sh kind=ship mode=no-mistakes yolo=off window=fm-lab-jevlog-54162-6874:w2:p2 worktree=/Users/justinlobaito/.treehouse/demo-b98e57/2/demo
+spawn exit=0
+
+## state/dispatch-resolve.log
+{"ts":1790978758,"event":"resolve","task":"lab-jev-b2","project":"demo","status":"clear","picked":"rule_5","rule":"rule_5","confidence":1.0,"model":"jev-1.13.0","profile":{"harness":"claude","model":"sonnet","effort":"medium"},"reason":null}
+{"ts":1790978773,"event":"dispatched","task":"lab-jev-b2","profile":{"harness":"sh","model":null,"effort":null}}
+key occurrences: 0  brief-text occurrences: 0
+lab teardown exit=0
+lab home removed: yes

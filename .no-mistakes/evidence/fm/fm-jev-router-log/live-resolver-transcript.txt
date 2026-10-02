@@ -1,0 +1,36 @@
+## 1. key absent (off path)
+$ fm-dispatch-resolve.sh data/lab-pager-fix-q7/brief.md --project demo
+dispatch-resolve: off (TYPESAFE_API_KEY absent from the environment and /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.yasZ48/.env)
+exit=0
+
+## 2. live Typesafe call, real key, no quota-axi on this host
+dispatch-resolve: error (quota-axi not installed)
+dispatch-resolve:
+  status: error
+  reason: quota-axi not installed
+exit=0
+
+## 3. live Typesafe call, quota-axi shim with an empty schema-5 snapshot
+dispatch-resolve:
+  status: escalate
+  model: jev-1.13.0   latency_ms: 256   tokens: 970/147
+  rule: rule_5 (Well-specified implementation with clear acceptance criteria)   confidence: 1.0
+  probabilities: rule_9=0.0 rule_8=0.0 rule_6=0.0 rule_3=0.0 rule_10=0.0 rule_1=0.0 rule_5=1.0 rule_2=0.0 rule_11=0.0 rule_7=0.0 rule_4=0.0 default=0.0 rule_13=0.0 rule_12=0.0
+  reason: no rankable eligible candidate
+  note: rule matched
+  candidate: claude:sonnet  provider=claude  -> eligible, unranked: provider claude not in the quota snapshot: disclosed uncertainty
+exit=0
+
+## 4. never-send list matches the brief (no network)
+dispatch-resolve: off (brief text matches /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.yasZ48/config/dispatch-never-send line 1; nothing sent)
+exit=0
+
+## state/dispatch-resolve.log
+{"ts":1790978640,"event":"resolve","task":"lab-pager-fix-q7","project":"demo","status":"off","picked":null,"rule":null,"confidence":null,"model":null,"profile":null,"reason":"TYPESAFE_API_KEY absent"}
+{"ts":1790978641,"event":"resolve","task":"lab-pager-fix-q7","project":"demo","status":"error","picked":null,"rule":null,"confidence":null,"model":null,"profile":null,"reason":"quota-axi not installed"}
+{"ts":1790978642,"event":"resolve","task":"lab-pager-fix-q7","project":"demo","status":"escalate","picked":"rule_5","rule":"rule_5","confidence":1.0,"model":"jev-1.13.0","profile":null,"reason":"no rankable eligible candidate"}
+{"ts":1790978642,"event":"resolve","task":"lab-pager-fix-q7","project":"demo","status":"off","picked":null,"rule":null,"confidence":null,"model":null,"profile":null,"reason":"brief text matches /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.yasZ48/config/dispatch-never-send line 1; nothing sent"}
+
+## secret/brief leak check
+key occurrences in log: 0
+brief-text occurrences in log: 0

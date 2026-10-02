@@ -89,9 +89,14 @@ assert_equals "$(decision "$CARD" | jq -r .question)" \
 release record truss --waiting 2 --staging-sha def5678 >/dev/null
 assert_equals "$(FM_RELEASE_NOW=2026-10-02T13:30:00Z release card truss)" "$CARD" "a moved staging commit re-holds the same call"
 assert_equals "$(decision "$CARD" | jq -r .question)" \
-  "Send truss to production? 2 changes waiting, staging https://truss-staging.netlify.app at def5678, staging moved from abc1234" \
-  "re-held wording pins the new commit and says staging moved"
-assert_equals "$(site truss | jq -c .pinned)" "{\"$CARD\":\"def5678\"}" "the re-held call pins the new commit"
+  "Send truss to production? 2 changes waiting, staging https://truss-staging.netlify.app at abc1234; staging has since moved to def5678, send releases only abc1234" \
+  "re-held wording keeps the pinned commit and says staging moved past it"
+release record truss --waiting 4 >/dev/null
+FM_RELEASE_NOW=2026-10-02T13:45:00Z release card truss >/dev/null
+assert_equals "$(decision "$CARD" | jq -r .question)" \
+  "Send truss to production? 4 changes waiting, staging https://truss-staging.netlify.app at abc1234; staging has since moved to def5678, send releases only abc1234" \
+  "a waiting-only refresh still says staging moved past the pinned commit"
+assert_equals "$(site truss | jq -c .pinned)" "{\"$CARD\":\"abc1234def\"}" "refreshes never move the call's pin"
 pass "card reuses the open call"
 
 # The answer returns through the one keyed-answer intake every channel feeds.
@@ -101,7 +106,7 @@ assert_equals "$(decision "$CARD")" "" "the answered call leaves the decisions l
 release record truss --staging-sha 0123abcd >/dev/null
 NEXT=$(FM_RELEASE_NOW=2026-10-02T14:00:00Z release card truss)
 assert_equals "$NEXT" "release-truss-1790949600" "after an answer the next card is a new call"
-assert_equals "$(site truss | jq -c .pinned)" "{\"$CARD\":\"def5678\",\"$NEXT\":\"0123abcd\"}" \
+assert_equals "$(site truss | jq -c .pinned)" "{\"$CARD\":\"abc1234def\",\"$NEXT\":\"0123abcd\"}" \
   "the answered call keeps the commit it showed after staging moves"
 pass "an answered call is not reused"
 
@@ -115,7 +120,7 @@ AGED_AGAIN=$(FM_RELEASE_NOW=2026-10-16T14:00:00Z release card truss)
 assert_equals "$AGED_AGAIN" "release-truss-1792159200" "an aged call is replaced by a new call"
 assert_equals "$(site truss | jq -r .card)" "$AGED_AGAIN" "the replacement is stored in the record"
 assert_equals "$(decision "$AGED_AGAIN" 2026-10-16T14:00:00Z | jq -r .question)" \
-  "Send truss to production? 2 changes waiting, staging https://truss-staging.netlify.app at 0123abc" \
+  "Send truss to production? 4 changes waiting, staging https://truss-staging.netlify.app at 0123abc" \
   "the replacement shows on the decisions list"
 rc=0; in_home "$ROOT/bin/fm-captain-hold.sh" open "$NEXT" || rc=$?
 expect_code 1 "$rc" "the aged call is closed"

@@ -744,13 +744,22 @@ pass "a reply that arrives after escalation resolves it and clears the open deci
 
 # The listener keeps one claim across empty polls and across a delta. Reconcile
 # is not involved: nothing here starts a second runner.
+STOPPED_PID=$(sed -n '2p' "$CLAIMS/$SID.claim" 2>/dev/null || true)
 stop_reply_listener || fail "the reply listener did not stop before the continuity check"
 : > "$TMP_ROOT/reply-polls"
 FM_REMOTE_REPLY_WAIT_SECONDS=1 \
 FM_REMOTE_REPLY_POLL_LOG="$TMP_ROOT/reply-polls" \
   remote_env "$ROOT/bin/fm-procevent.sh" start "$SID" >/dev/null 2>&1 &
-wait_for "$CLAIMS/$SID.claim" || fail "continuous reply listener never claimed the source"
-HELD_PID=$(sed -n '2p' "$CLAIMS/$SID.claim")
+# The stopped runner may leave its claim behind on lock contention, so wait for
+# the new runner to own it rather than for the file to exist.
+HELD_PID=
+for _ in $(seq 1 100); do
+  HELD_PID=$(sed -n '2p' "$CLAIMS/$SID.claim" 2>/dev/null || true)
+  [ -n "$HELD_PID" ] && [ "$HELD_PID" != "$STOPPED_PID" ] && [ "$(reply_owner)" = live ] && break
+  HELD_PID=
+  sleep 0.05
+done
+[ -n "$HELD_PID" ] || fail "continuous reply listener never claimed the source"
 polls=0
 for _ in $(seq 1 120); do
   polls=$(wc -l < "$TMP_ROOT/reply-polls" | tr -d ' ')

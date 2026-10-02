@@ -14,8 +14,9 @@
 #
 # A local structured answer channel answers an open captain hold by dropping
 # one JSON file into this home's drop folder, state/answer-drop/, which the home
-# summary publishes as answers_inbox. The writers allowed are aios-ui (claude-os
-# ADR 0012) and fm-deck (the in-session Captain's Call pane, docs/fm-deck.md).
+# summary publishes as answers_inbox. A file's `source` names its writer and
+# must be aios-ui (claude-os ADR 0012) or fm-deck (the in-session Captain's Call
+# pane, docs/fm-deck.md); any other value is rejected malformed.
 # This adapter turns each file into one keyed line for bin/fm-captain-hold.sh
 # answers --source <the file's source> and records the outcome in answers_seen.
 # It never decides what an answer means: the intake owns every close rule.
@@ -47,7 +48,7 @@
 # DROP FILE CONTRACT. A writer renames a complete file into the folder root as
 # `<hold_id>-<epoch-ms>.json`:
 #   {"hold_id", "question_fingerprint", "answer": {"option": "<key>"} | {"text": "<words>"},
-#    "note"?, "answered_at", "source": "aios-ui" | "fm-deck"}
+#    "note"?, "answered_at", "source": "aios-ui"}
 # Only root names made of [A-Za-z0-9._-] ending in .json are read; dotfiles,
 # other names, symlinks, and subfolders are ignored, so a writer's temp file is
 # never read. A read file ends in handled/ (resolved) or rejected/ and is never

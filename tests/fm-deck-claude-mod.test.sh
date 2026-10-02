@@ -63,21 +63,21 @@ const fp = (n) => String(n).repeat(64);
 const decision = (id, question, options, extra = {}) => ({ id, project: id.split("-")[0], summary: id, question, fingerprint: fp(1), options, bucket: "live", ageDays: 1, ...extra });
 const opts = [{ key: "a", label: "Alpha - recommended" }, { key: "b", label: "Beta" }];
 
-// Grouping, parking, recommendation, and the question split.
-const { cards, parked } = m.buildCards([
+// Grouping, live-only cards, recommendation, and the question split.
+const cards = m.buildCards([
   decision("x-one", "Ship it? Recommended: yes. If nothing: it waits a week.", opts),
   decision("y-two", "Same question?", opts),
   decision("z-three", "Same question?", opts),
-  decision("p-park", "Parked?", opts, { bucket: "waiting" }),
+  decision("p-park", "Parked?", opts, { bucket: "dated" }),
   decision("q-bad", "Bad fingerprint?", opts, { fingerprint: "nope" }),
+  decision("w-status", "", [], { fingerprint: "", bucket: "" }),
 ]);
-check(parked === 2, \`parked counted \${parked}\`);
 check(cards.length === 2, \`\${cards.length} cards\`);
 check(cards[0].short === "Ship it?" && cards[0].ifNothing === "it waits a week.", \`split: \${JSON.stringify(cards[0])}\`);
 check(cards[0].recommended === "a" && m.cleanLabel("Alpha - recommended") === "Alpha", "recommended option not found");
 check(JSON.stringify(cards[1].holds.map((h) => h.id)) === '["y-two","z-three"]', "identical questions not grouped");
 check(cards[1].unclear.includes("same question on 2 items"), "grouped card not linted");
-const mixed = m.buildCards([decision("y-two", "Q?", opts), decision("z-three", "Q?", [{ key: "c", label: "C" }])]).cards[0];
+const mixed = m.buildCards([decision("y-two", "Q?", opts), decision("z-three", "Q?", [{ key: "c", label: "C" }])])[0];
 check(mixed.options.length === 0 && mixed.unclear.includes("no options"), "a group with different option keys still offers keys");
 
 // Lint: the AIOS lessons.
@@ -127,12 +127,21 @@ check(m.bandParts(1, summary.prs, 2).join(" · ") === "1 call waits on you · PR
 // The summary reader takes the real field names bin/fm-fleet-snapshot.sh publishes.
 const parsed = m.parseSummary(JSON.stringify({
   generated_at: "2026-10-02T20:06:29Z", answers_inbox: "/h/state/answer-drop",
-  decisions_open: [{ id: "a-b", project: "p", question: "Q?", question_fingerprint: fp(1), options: [{ key: "k", label: "L" }], hold_bucket: "live", hold_age_days: 3 }],
+  decisions_open: [
+    { id: "a-b", project: "p", question: "Q?", question_fingerprint: fp(1), options: [{ key: "k", label: "L" }], hold_bucket: "live", hold_age_days: 3 },
+    { id: "w1", key: "d1", verb: "decide", summary: "worker status decision", reason: null, options: [], question: null, question_fingerprint: null, source: "status" },
+  ],
+  queued: [
+    { id: "a-b", hold_bucket: "live" }, { id: "c-d", hold_bucket: "dated" }, { id: "e-f", hold_bucket: "aged" },
+    { id: "g-h", hold_bucket: "blocked" }, { id: "i-j", hold_bucket: null },
+  ],
   answers_seen: [{ file: "a-b-1.json", hold_id: "a-b", status: "resolved", reason: null }],
   contributions: { captain: [{ task: "a-b", url: "https://github.com/a/b/pull/7" }] },
   fleet: [{ state: "failed" }, { state: "working" }],
 }));
 check(parsed.decisions[0].fingerprint === fp(1) && parsed.decisions[0].ageDays === 3, "decision fields");
+check(parsed.parked === 3, \`parked counted \${parsed.parked} from queued\`);
+check(m.buildCards(parsed.decisions).length === 1, "a worker status decision became a card");
 check(parsed.seen[0].status === "resolved" && parsed.prs[0].label === "PR #7" && parsed.blockedWorkers === 1, "summary fields");
 check(m.parseSummary("not json") === undefined && m.parseSummary("{}") === undefined, "non-summary text");
 console.log("model-ok");

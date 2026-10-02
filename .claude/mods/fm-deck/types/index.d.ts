@@ -22,6 +22,8 @@ export type DeckSummary = {
   generatedAt: string;
   inbox: string;
   decisions: DeckDecision[];
+  /** Captain holds parked out of the live list (blocked, dated, aged), from the summary's queued[]. */
+  parked: number;
   seen: DeckSeen[];
   prs: DeckPr[];
   workers: number;

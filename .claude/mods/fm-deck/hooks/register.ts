@@ -59,7 +59,7 @@ let activation: Promise<boolean> | undefined;
 let home = "";
 let summaryMtime = -1;
 let lastLine: string | undefined;
-let liveBefore = 0;
+let openedUnasked = false;
 let poller: { cancel(): void } | undefined;
 let pending: { timer: { cancel(): void }; publish: () => Promise<void> } | undefined;
 
@@ -126,7 +126,7 @@ async function poll($: EngineInterface): Promise<void> {
   ) {
     await update($, view, (v): DeckView => ({ ...v, summary, notes, helmOther }));
   }
-  const calls = summary === null ? 0 : buildCards(summary.decisions).cards.length;
+  const calls = summary === null ? 0 : buildCards(summary.decisions).length;
   const now = await $.clock.now();
   const beat = await mtime($, `${state}/.last-watcher-beat`);
   let usage: Awaited<ReturnType<EngineInterface["session"]["usage"]>> | undefined;
@@ -147,10 +147,12 @@ async function poll($: EngineInterface): Promise<void> {
     lastLine = line;
     $.ui.status(line);
   }
-  // Open the pane unasked once live calls appear; the engine seats an unasked pane
-  // only where it can dock beside the transcript and otherwise waits.
-  if (calls > 0 && liveBefore === 0) void $.ui.open({ id: PANE, title: "Captain's Call" });
-  liveBefore = calls;
+  // Open the pane unasked once per session when live calls appear; the engine seats an
+  // unasked pane only where it can dock beside the transcript and otherwise waits.
+  if (calls > 0 && !openedUnasked) {
+    openedUnasked = true;
+    void $.ui.open({ id: PANE, title: "Captain's Call" });
+  }
 }
 
 async function start($: EngineInterface): Promise<void> {
@@ -160,9 +162,8 @@ async function start($: EngineInterface): Promise<void> {
   );
   summaryMtime = -1;
   lastLine = undefined;
-  liveBefore = 0;
-  pending?.timer.cancel();
-  pending = undefined;
+  openedUnasked = false;
+  await flush($);
   const now = await $.clock.now();
   const session = await $.session.id().catch(() => "");
   const sent = await loadRecords<DeckSent>($, STORE_SENT, now);
@@ -181,7 +182,8 @@ function openPane($: EngineInterface): Promise<unknown> {
 
 async function cardsNow($: EngineInterface): Promise<{ v: DeckView; cards: DeckCard[]; parked: number; card: DeckCard | undefined }> {
   const v = await read($, view);
-  const { cards, parked } = v.summary === null ? { cards: [], parked: 0 } : buildCards(v.summary.decisions);
+  const cards = v.summary === null ? [] : buildCards(v.summary.decisions);
+  const parked = v.summary?.parked ?? 0;
   const index = cards.length === 0 ? 0 : Math.min(v.index, cards.length - 1);
   return { v, cards, parked, card: cards[index] };
 }
@@ -217,23 +219,24 @@ async function publish($: EngineInterface, card: DeckCard, answer: { option: str
 
 /** Pick an answer: publish after the undo window, unless `u` comes first. */
 async function pick($: EngineInterface, card: DeckCard, answer: { option: string } | { text: string }, label: string): Promise<void> {
-  if (pending !== undefined) await flush();
+  await flush($);
   const publishNow = () => publish($, card, answer, label);
   const timer = $.clock.after(UNDO_MS, () => {
-    void flush();
+    void flush($);
   });
   pending = { timer, publish: publishNow };
   await update($, view, (v): DeckView => ({ ...v, mode: "card", pending: { card: card.key, label } }));
   $.ui.toast(`Sent: ${label}. u to undo (5 s)`, { timeoutMs: UNDO_MS });
+}
 
-  async function flush(): Promise<void> {
-    const due = pending;
-    if (due === undefined) return;
-    pending = undefined;
-    due.timer.cancel();
-    await update($, view, (v): DeckView => ({ ...v, pending: null }));
-    await due.publish();
-  }
+/** Publish the pending pick now, if there is one. */
+async function flush($: EngineInterface): Promise<void> {
+  const due = pending;
+  if (due === undefined) return;
+  pending = undefined;
+  due.timer.cancel();
+  await update($, view, (v): DeckView => ({ ...v, pending: null }));
+  await due.publish();
 }
 
 async function undo($: EngineInterface): Promise<void> {
@@ -415,7 +418,7 @@ export const register: Register = (on) => {
     if (!(await isActivated($))) return next(e);
     const v = await read($, view);
     if (e.props.hasSurvey || v.summary === null) return next(e);
-    const calls = buildCards(v.summary.decisions).cards.length;
+    const calls = buildCards(v.summary.decisions).length;
     const parts = bandParts(calls, v.summary.prs, v.notes);
     if (parts.length === 0) return next(e);
     const { Box, Text, Button } = $.ui.resolve(e);

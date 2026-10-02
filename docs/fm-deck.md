@@ -19,12 +19,13 @@ The home is `FM_HOME`, then `FM_ROOT_OVERRIDE`, then the repository the mod sits
 ## Captain's Call
 
 `/calls` opens the pane with the keyboard.
-fm-deck also opens it unasked when live calls first appear in a session; Claude Code seats an unasked pane only beside a fullscreen transcript at least 144 columns wide and otherwise waits.
+fm-deck also opens it unasked, once per session, when live calls first appear; Claude Code seats an unasked pane only beside a fullscreen transcript at least 144 columns wide and otherwise waits.
 
 The pane shows:
 
 - A header with how many calls wait and how many are parked.
-  Only holds whose `hold_bucket` is `live` become cards; waiting, deferred and other parked holds are only counted.
+  Only holds whose `hold_bucket` is `live` become cards; blocked, dated and aged holds, which the summary lists in `queued`, are only counted as parked.
+  Worker status decisions in `decisions_open` (no `question_fingerprint` or `hold_bucket`) are neither.
 - A strip naming every live call, the current one filled.
 - One card: the project and how long the call has been open, the question up to its "Recommended:" or "If nothing:" sentence, and the "If nothing:" line (or "No default recorded.").
 - Holds whose question text is identical become one card that lists every project it covers; answering it answers each of those holds.
@@ -38,7 +39,7 @@ The pane shows:
 | --- | --- |
 | `1`-`4` | Pick that option. |
 | `r` | Pick the option firstmate marked recommended (its label ends in "- recommended"). |
-| `u` | Undo a pick within five seconds; nothing is sent. |
+| `u` | Undo a pick within five seconds; nothing is sent. A `/clear` or restart inside the window sends the pick at once. |
 | `l` | Later: then `1` tomorrow, `2` next week, `3` next Monday, `b` back. |
 | `e` | Ask firstmate to explain the call in chat. |
 | `x` | Tell firstmate the call is not the captain's or is already done. |

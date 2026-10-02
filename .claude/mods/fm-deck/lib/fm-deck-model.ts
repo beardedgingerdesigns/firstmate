@@ -81,7 +81,7 @@ export function parseSummary(raw: string | undefined): DeckSummary | undefined {
       question: text(row.question) || text(row.reason),
       fingerprint: text(row.question_fingerprint),
       options,
-      bucket: text(row.hold_bucket) || "live",
+      bucket: text(row.hold_bucket),
       ageDays: typeof row.hold_age_days === "number" ? row.hold_age_days : 0,
     });
   }
@@ -97,10 +97,12 @@ export function parseSummary(raw: string | undefined): DeckSummary | undefined {
         .map((p) => ({ task: text(p.task), url: text(p.url), label: prLabel(text(p.url)) }))
     : [];
   const fleet = Array.isArray(doc.fleet) ? (doc.fleet as Record<string, unknown>[]) : [];
+  const queued = Array.isArray(doc.queued) ? (doc.queued as Record<string, unknown>[]) : [];
   return {
     generatedAt: text(doc.generated_at),
     inbox: text(doc.answers_inbox),
     decisions,
+    parked: queued.filter((q) => q !== null && typeof q === "object" && text(q.hold_bucket) !== "" && q.hold_bucket !== "live").length,
     seen,
     prs,
     workers: fleet.length,
@@ -139,8 +141,8 @@ export function lintCard(question: string, options: readonly DeckOption[], dupli
   return reasons;
 }
 
-/** Live holds as cards, identical question text grouped into one card; parked ones counted. */
-export function buildCards(decisions: readonly DeckDecision[]): { cards: DeckCard[]; parked: number } {
+/** Live holds as cards, identical question text grouped into one card. */
+export function buildCards(decisions: readonly DeckDecision[]): DeckCard[] {
   const live = decisions.filter((d) => d.bucket === "live" && FINGERPRINT.test(d.fingerprint));
   const groups = new Map<string, DeckDecision[]>();
   for (const d of live) {
@@ -168,7 +170,7 @@ export function buildCards(decisions: readonly DeckDecision[]): { cards: DeckCar
       unclear: lintCard(first.question, sameKeys ? first.options : [], group.length),
     });
   }
-  return { cards, parked: decisions.length - live.length };
+  return cards;
 }
 
 /** The published drop-file name the adapter reads: `<hold_id>-<epoch-ms>.json`. */

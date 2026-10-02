@@ -86,6 +86,16 @@ describe("Deck line", () => {
     await $.command.run({ command: "calls", args: "", origin: { kind: "composer" }, presentation: { isFullscreen: false, columns: 80 } });
     expect(journal.opens.at(-1)).toEqual({ id: "calls", focus: true });
   });
+
+  test("does not open unasked again when calls clear and new ones arrive in the same session", async ($, on) => {
+    const { journal, clock, publish } = world(on);
+    await $.session.start(sessionStart);
+    publish(summaryDoc({ decisions_open: [] }));
+    await clock.advance(3000);
+    publish(summaryDoc());
+    await clock.advance(3000);
+    expect(journal.opens).toEqual([{ id: "calls" }]);
+  });
 });
 
 describe("Captain's Call cards", () => {
@@ -94,7 +104,7 @@ describe("Captain's Call cards", () => {
     await $.session.start(sessionStart);
     const ui = await $.ui.mount(PANE);
     let drawn = textOf(await ui.drawn());
-    expect(drawn).toContain("3 waiting · 1 parked");
+    expect(drawn).toContain("3 waiting · 2 parked");
     expect(drawn).toContain("tonequest · open 2 days");
     expect(drawn).toContain('Add a "The Inside" field to issues and fill October\'s from Liz\'s doc?');
     expect(drawn).not.toContain("Recommended: yes");
@@ -156,6 +166,18 @@ describe("Captain's Call cards", () => {
     expect(journal.writes).toHaveLength(0);
     expect(journal.runs).toHaveLength(0);
     expect(journal.toasts.at(-1)).toBe("Undone: nothing was sent");
+  });
+
+  test("a /clear inside the undo window sends the pick instead of dropping it", async ($, on) => {
+    const { journal, files } = world(on);
+    await $.session.start(sessionStart);
+    const ui = await $.ui.mount(PANE);
+    await ui.press({ key: "rec" });
+    expect(journal.writes).toHaveLength(0);
+    await $.session.start(sessionStart);
+    const link = journal.runs.find((argv) => argv[0] === "/bin/ln")!;
+    expect(JSON.parse(files.get(link[2]!)!.text).answer).toEqual({ option: "add" });
+    expect(textOf(await ui.drawn())).toContain("sent: Add the field and fill October");
   });
 
   test("a grouped card answers every hold it covers", async ($, on) => {

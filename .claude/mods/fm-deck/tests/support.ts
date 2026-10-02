@@ -44,9 +44,16 @@ export function summaryDoc(overrides: Record<string, unknown> = {}): Record<stri
         options: [], question_fingerprint: FP(4), hold_bucket: "live", hold_age_days: 11,
       },
       {
-        id: "parked-one", project: "x", summary: "Parked", question: "Parked?", options: [{ key: "a", label: "A" }],
-        question_fingerprint: FP(5), hold_bucket: "waiting", hold_age_days: 3,
+        id: "w1", key: "d1", verb: "decide", summary: "Worker status decision", reason: null,
+        project: "x", options: [], question: null, question_fingerprint: null, source: "status",
       },
+    ],
+    // Every structured hold, captain or not; parked captain holds appear only here.
+    queued: [
+      { id: "parked-dated", hold_bucket: "dated", captain_actionable: false },
+      { id: "parked-aged", hold_bucket: "aged", captain_actionable: false },
+      { id: "plain-queued", hold_bucket: null, captain_actionable: false },
+      { id: "tq-inside", hold_bucket: "live", captain_actionable: true },
     ],
     contributions: { captain: [{ task: "ie-accounts", url: "https://github.com/acme/ie/pull/64", kind: "pr" }] },
     fleet: [{ task_id: "w1", state: "working" }, { task_id: "w2", state: "blocked" }],

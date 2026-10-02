@@ -81,10 +81,14 @@ export function keyHint(_keybinding, description) {
 }
 
 export class ToolExecutionComponent {
+  constructor(toolName) { this.toolName = toolName; }
+  setExpanded() {}
+  invalidate() {}
   updateResult(result) {
     this.result = result;
   }
   render() {
+    if (!this.result) return ["", this.toolName];
     return (this.result?.content ?? [])
       .filter((item) => item.type === "text")
       .flatMap((item) => item.text.split("\n"));
@@ -804,7 +808,7 @@ const calmOffResult = outcomesTool.renderResult(stockResult, { expanded: false, 
 if (calmOffCall.constructor.name !== "Box" || calmOffCall.paddingX !== 1 || calmOffCall.paddingY !== 1) {
   throw new Error("fm_branch_outcomes changed its ordinary shell rendering");
 }
-if (calmOffResult.constructor.name !== "Container" || calmOffCall.children[0]?.text !== "fm_branch_outcomes" || calmOffCall.children[1]?.text !== "OUTCOME_DUMP") {
+if (calmOffResult.constructor.name !== "Container" || calmOffCall.children[0]?.render(100).join("\n") !== "fm_branch_outcomes" || calmOffCall.children[1]?.text !== "OUTCOME_DUMP") {
   throw new Error("fm_branch_outcomes changed its ordinary call or result rendering");
 }
 const legacyStockResult = {
@@ -5096,6 +5100,14 @@ const result = {
 const ui = { requestRender() {} };
 const stockRow = new ToolExecutionComponent("fm_branch_outcomes", "stock", args, { showImages: false }, stockDefinition, ui, process.cwd());
 const actualRow = new ToolExecutionComponent("fm_branch_outcomes", "actual", args, { showImages: false }, actualDefinition, ui, process.cwd());
+for (const nextArgs of [{}, { recent: 1 }, args]) {
+  for (const row of [stockRow, actualRow]) row.updateArgs(nextArgs);
+  for (const width of [30, 100]) {
+    if (JSON.stringify(actualRow.render(width)) !== JSON.stringify(stockRow.render(width))) {
+      throw new Error("pending Calm-off tool arguments differ from Pi stock");
+    }
+  }
+}
 for (const row of [stockRow, actualRow]) {
   row.markExecutionStarted();
   row.setArgsComplete();

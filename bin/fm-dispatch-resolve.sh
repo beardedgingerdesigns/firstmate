@@ -62,6 +62,15 @@
 #   existing unreadable rules file, malformed rules, or missing jq), which is
 #   actionable, never selected around.
 #
+# Decision log: every exit-0 call, including off, appends one JSON line to
+#   $FM_HOME/state/dispatch-resolve.log (FM_STATE_OVERRIDE selects the state
+#   directory): event "resolve", the task id (the brief's directory name), the
+#   status, the rule Jev picked and the rule applied after any fallback, the
+#   confidence, the answering model, the resolved profile, and the reason.
+#   bin/fm-spawn.sh appends an event "dispatched" line with the profile it
+#   launched while the log exists. The key and brief text are never logged, and
+#   a failed write never changes the outcome.
+#
 # Environment:
 #   TYPESAFE_API_KEY is the only resolver-specific environment setting.
 #
@@ -78,6 +87,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FM_ROOT="${FM_ROOT_OVERRIDE:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 FM_HOME="${FM_HOME:-$FM_ROOT}"
 CONFIG="${FM_CONFIG_OVERRIDE:-$FM_HOME/config}"
+DECISION_LOG="${FM_STATE_OVERRIDE:-$FM_HOME/state}/dispatch-resolve.log"
 
 # shellcheck source=bin/fm-quota-axi-lib.sh
 . "$SCRIPT_DIR/fm-quota-axi-lib.sh"
@@ -91,13 +101,26 @@ CONFIG="${FM_CONFIG_OVERRIDE:-$FM_HOME/config}"
 . "$SCRIPT_DIR/fm-brief-heading-lib.sh"
 
 CONFIDENCE_FLOOR=0.6
-TS_MODEL=jev-latest
+TS_MODEL=jev-1.13.0
 TS_BASE=https://api.typesafe.ai
 TS_TIMEOUT=5
 DEFAULT_WHEN="No listed rule applies to this task."
 
 die() { printf 'error: %s\n' "$1" >&2; exit 2; }
+# ponytail: unlocked append; one short line under O_APPEND does not interleave.
+log_decision() {  # <status> <reason> [<result-json>]
+  local task=''
+  [ -z "$BRIEF" ] || task=$(basename "$(dirname "$BRIEF")")
+  { jq -nc --arg status "$1" --arg reason "$2" --arg task "$task" --arg project "$PROJECT" \
+      --argjson ts "$(date +%s)" --argjson r "${3:-null}" '
+      def profile: if . == null then null else {harness, model, effort} end;
+      {ts: $ts, event: "resolve", task: $task, project: $project, status: $status,
+       picked: ($r.rule // null), rule: ($r.resolved_rule // null), confidence: ($r.confidence // null),
+       model: ($r.model // null), profile: ($r.chosen.profile | profile),
+       reason: (if $reason == "" then null else $reason end)}' >> "$DECISION_LOG"; } 2>/dev/null || true
+}
 no_rules() {
+  log_decision escalate "no rules to match"
   printf 'dispatch-resolve:\n  status: escalate\n  reason: no rules to match\n'
   exit 0
 }
@@ -125,6 +148,7 @@ if [ -z "$TYPESAFE_API_KEY_PRIVATE" ]; then
   TYPESAFE_API_KEY_PRIVATE=$(fmx_env_get TYPESAFE_API_KEY "$FM_HOME/.env")
 fi
 if [ -z "$TYPESAFE_API_KEY_PRIVATE" ]; then
+  log_decision off "TYPESAFE_API_KEY absent"
   echo "dispatch-resolve: off (TYPESAFE_API_KEY absent from the environment and $FM_HOME/.env)" >&2
   exit 0
 fi
@@ -228,8 +252,9 @@ done < <(jq -r '
 
 RULE_COUNT=$(jq -r '(.rules // []) | length' "$RULES")
 
-emit_error() {
+emit_error() {  # <reason> [<log-reason>]
   local reason=$1
+  log_decision error "${2:-$reason}"
   echo "dispatch-resolve: error ($reason)" >&2
   printf 'dispatch-resolve:\n  status: error\n  reason: %s\n' "$reason"
   exit 0
@@ -246,6 +271,7 @@ SEND_TEXT=$(mktemp) || { rm -f "$RESP_FILE" "$QUOTA" "$TASK_TEXT"; die "mktemp f
 trap 'rm -f "$RULES" "$RESP_FILE" "$QUOTA" "$TASK_TEXT" "$SEND_TEXT"' EXIT
 
 never_send_off() {
+  log_decision off "$1; nothing sent"
   echo "dispatch-resolve: off ($1; nothing sent)" >&2
   exit 0
 }
@@ -327,7 +353,7 @@ command -v curl >/dev/null 2>&1 || emit_error "curl not installed"
     --data-binary @- 2>/dev/null) || HTTP=000
   T1=$(fm_timing_now_ms)
   LAT_MS=$(( T1 - T0 ))
-  [ "$HTTP" = 200 ] || emit_error "http $HTTP after ${LAT_MS} ms: $(head -c 200 "$RESP_FILE" 2>/dev/null | tr '\n' ' ')"
+  [ "$HTTP" = 200 ] || emit_error "http $HTTP after ${LAT_MS} ms: $(head -c 200 "$RESP_FILE" 2>/dev/null | tr '\n' ' ')" "http $HTTP after ${LAT_MS} ms"
 jq -e --slurpfile rules "$RULES" '
     (($rules[0].rules | to_entries | map("rule_" + ((.key + 1) | tostring))) + ["default"] | sort) as $choices |
     (.answers.rule.choice | type) == "string" and
@@ -462,7 +488,7 @@ RESULT=$(jq -n --arg floor "$CONFIDENCE_FLOOR" --argjson lat "$LAT_MS" --arg non
   def when_of($c): (if rule_at($c) == null then $none_criterion else rule_at($c).when end | .[0:60]);
   {
     model: $r.model, latency_ms: $lat, tokens: ($r.usage // null),
-    rule: $picked,
+    rule: $picked, resolved_rule: $choice,
     rule_when: when_of($picked),
     confidence: $a.confidence, probabilities: $a.probabilities
   }
@@ -514,5 +540,6 @@ TEXT=$(jq -r '
   (if .chosen then "  profile: --harness \(.chosen.profile.harness | shell_arg)"
       + (if .chosen.profile.model then " --model \(.chosen.profile.model | shell_arg)" else "" end)
       + (if .chosen.profile.effort then " --effort \(.chosen.profile.effort | shell_arg)" else "" end) else empty end)' <<<"$RESULT") || emit_error "output rendering failed"
+log_decision "$(jq -r .status <<<"$RESULT")" "$(jq -r '.reason // ""' <<<"$RESULT")" "$RESULT"
 printf '%s\n' "$TEXT"
 exit 0

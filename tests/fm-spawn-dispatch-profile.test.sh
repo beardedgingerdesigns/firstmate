@@ -520,6 +520,39 @@ test_claude_threads_model_and_effort() {
   pass "claude receives --model and --effort profile flags"
 }
 
+test_dispatch_resolve_log_records_the_launched_profile() {
+  local rec id out status line sm
+  id=profile-log-z2
+  rec=$(make_spawn_case profile-log claude "$id")
+  read_case_record "$rec"
+
+  out=$(run_ship_spawn "$HOME_DIR" "$WT_DIR" "$FAKEBIN_DIR" "$LAUNCH_LOG" "$id" "$PROJ_DIR" --model sonnet)
+  expect_code 0 "$?" "spawn without a decision log should succeed"
+  assert_absent "$HOME_DIR/state/dispatch-resolve.log" "a spawn never creates the decision log"
+
+  id=profile-log-z3
+  rec=$(make_spawn_case profile-log-on claude "$id")
+  read_case_record "$rec"
+  printf '{"event":"resolve","task":"%s"}\n' "$id" > "$HOME_DIR/state/dispatch-resolve.log"
+  out=$(run_ship_spawn "$HOME_DIR" "$WT_DIR" "$FAKEBIN_DIR" "$LAUNCH_LOG" "$id" "$PROJ_DIR" --model sonnet --effort high)
+  status=$?
+  expect_code 0 "$status" "spawn with a decision log should succeed: $out"
+  line=$(tail -n 1 "$HOME_DIR/state/dispatch-resolve.log")
+  assert_equals "{\"event\":\"dispatched\",\"task\":\"$id\",\"profile\":{\"harness\":\"claude\",\"model\":\"sonnet\",\"effort\":\"high\"}}" \
+    "$(jq -c 'del(.ts)' <<<"$line")" "spawn appends the launched profile to the decision log"
+
+  id=profile-log-sm-z4
+  rec=$(make_spawn_case profile-log-sm claude "$id")
+  read_case_record "$rec"
+  sm="$CASE_DIR/secondmate-home"
+  make_seeded_secondmate_home "$sm" "$id"
+  printf '{"event":"resolve","task":"other"}\n' > "$HOME_DIR/state/dispatch-resolve.log"
+  out=$(run_spawn "$HOME_DIR" "$WT_DIR" "$FAKEBIN_DIR" "$LAUNCH_LOG" "$id" "$sm" --secondmate)
+  expect_code 0 "$?" "secondmate spawn with a decision log should succeed: $out"
+  assert_equals 1 "$(wc -l < "$HOME_DIR/state/dispatch-resolve.log" | tr -d ' ')" "a secondmate spawn appends no dispatched line"
+  pass "an existing decision log gets one dispatched line per ship or scout spawn"
+}
+
 test_codex_threads_model_and_effort() {
   local rec id out status launch
   id=profile-codex-z3
@@ -1826,6 +1859,7 @@ test_active_dispatch_profile_allows_positional_harness
 test_active_dispatch_profile_allows_raw_launch_command
 test_chained_raw_launch_strips_ai_trailer_in_every_step
 test_claude_threads_model_and_effort
+test_dispatch_resolve_log_records_the_launched_profile
 test_codex_threads_model_and_effort
 test_codex_threads_model_and_max_effort
 test_codex_omits_max_effort_for_unsupported_model

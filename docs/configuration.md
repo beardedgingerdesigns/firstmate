@@ -94,6 +94,7 @@ Each effective `FM_HOME` contains private operational directories.
 - Per-task steering-inbox records under `state/<id>.inbox/` (`bin/fm-task-inbox-lib.sh`).
 - Parent-owned secondmate pending-reply records under `state/pending-replies/` (`bin/fm-pending-reply-lib.sh`).
 - The captain-answer drop folder `state/answer-drop/` and its outcome ledger `state/answer-drop.seen.jsonl` (`bin/fm-procevent-answer-drop.sh`).
+- The dispatch-resolve decision log `state/dispatch-resolve.log` ("Typed dispatch resolution").
 
 `config/` holds local gitignored operating choices, including explicit extension bindings under `config/extensions.d/`.
 
@@ -1203,7 +1204,19 @@ Firstmate passes its profile line unless it states a reason to override, such as
 
 - The resolver and bootstrap copy an environment-provided key into a non-exported private variable and unset `TYPESAFE_API_KEY` before launching child processes, so the secret is absent from child environments.
 - The resolver sends the key to `curl` only as a header read from a file descriptor, never on argv, and nothing prints, logs, or writes it.
-- The resolver fixes the endpoint at `https://api.typesafe.ai`, model at `jev-latest`, default confidence floor at 0.6, and request timeout at 5 seconds; `TYPESAFE_API_KEY` is its only resolver-specific environment setting.
+- The resolver fixes the endpoint at `https://api.typesafe.ai`, model at the pinned `jev-1.13.0` so a moving `jev-latest` alias cannot shift tuned confidence floors, default confidence floor at 0.6, and request timeout at 5 seconds; `TYPESAFE_API_KEY` is its only resolver-specific environment setting.
+
+**Decision log (state/dispatch-resolve.log)**
+
+Every resolver call that exits 0, including the off and never-send paths, appends one JSON line to the home's private, gitignored `state/dispatch-resolve.log`, so each pick can later be compared with what was dispatched and how the work turned out.
+A `resolve` line carries the epoch `ts`, the `task` id (the brief's directory name, so `data/<id>/brief.md` logs `<id>`), `project`, the outcome `status`, the rule Jev `picked`, the `rule` applied after any fallback, `confidence`, the answering `model`, the resolved `profile` as `{harness, model, effort}` (null unless `clear`), and the non-clear `reason`.
+While the log exists, every fresh ship or scout spawn appends a `dispatched` line with the same `task` id and the `profile` it actually launched, so a resolver pick and an override are joined by task id.
+The log never contains the key or brief text, it is never rotated or read by firstmate's own routing, and a failed write never changes a resolver or spawn outcome.
+
+```json
+{"ts":1790980000,"event":"resolve","task":"pager-fix","project":"app","status":"clear","picked":"rule_4","rule":"rule_4","confidence":0.9,"model":"jev-1.13.0","profile":{"harness":"claude","model":"sonnet","effort":"medium"},"reason":null}
+{"ts":1790980042,"event":"dispatched","task":"pager-fix","profile":{"harness":"claude","model":"sonnet","effort":"medium"}}
+```
 
 The live rule-match evidence is recorded in [`verification/dispatch-resolve.md`](verification/dispatch-resolve.md).
 

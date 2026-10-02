@@ -1,0 +1,37 @@
+
+ ▀▀█  v1.0.0
+ █▀ █ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  fm-branch-supervision.ts
+
+
+ Warning: fd not found. Offline mode enabled, skipping download.
+ Warning: ripgrep not found. Offline mode enabled, skipping download.
+
+
+ Show recent branch outcomes.
+
+
+
+ fm_branch_outcomes
+ LIVE_OUTCOME_DUMP
+
+
+ LIVE_DONE_MARKER
+
+ Warning: No models available. Use /login to log into a provider via OAuth or API key. See:
+   /private/tmp/fm-pi1.ELyGSF/lib/node_modules/@earendil-works/pi-coding-agent/docs/providers.md
+   /private/tmp/fm-pi1.ELyGSF/lib/node_modules/@earendil-works/pi-coding-agent/docs/models.md
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys on` to ~/.tmux.conf
+ and restart tmux.
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.sY9TkZ/project
+↑2 ↓2 0.0%/0 (auto)                                                                                              unknown

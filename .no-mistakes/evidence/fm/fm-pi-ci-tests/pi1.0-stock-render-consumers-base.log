@@ -1,0 +1,9 @@
+not ok - Pi outcomes rendering consumers must preserve stock behavior: file:///private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-pi-branch-extension.PQg6tU/stock-render-consumers/[eval1]:71
+  throw new Error("Calm-off ToolExecutionComponent rendering differs from Pi stock");
+        ^
+
+Error: Calm-off ToolExecutionComponent rendering differs from Pi stock
+    at file:///private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-pi-branch-extension.PQg6tU/stock-render-consumers/[eval1]:71:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.14.1: expected exit 0, got 1

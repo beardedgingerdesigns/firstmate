@@ -43,20 +43,25 @@
 # source-id  Print the canonical source id, `answer-drop`.
 # retire     Retire the source registration.
 #
-# DROP FILE CONTRACT. A writer renames a complete file into the folder root as
-# `<hold_id>-<epoch-ms>.json`:
+# DROP FILE CONTRACT. A writer creates a hidden temp file in the folder
+# (`.<hold>.<pid>.<uuid>.tmp`), publishes it with a no-clobber hard link to
+# `<hold_id>-<epoch-ms>.json` in the folder root, then unlinks the temp; a file
+# read mid-publish simply has link count 2. The published file holds:
 #   {"hold_id", "question_fingerprint", "answer": {"option": "<key>"} | {"text": "<words>"},
 #    "note"?, "answered_at", "source": "aios-ui"}
-# Only root names made of [A-Za-z0-9._-] ending in .json are read; dotfiles,
-# other names, symlinks, and subfolders are ignored, so a writer's temp file is
-# never read. A read file ends in handled/ (resolved) or rejected/ and is never
-# deleted; a name already present there gets an epoch suffix.
+# Only non-hidden root names exactly `<hold_id>-<epoch-ms>.json` (hold_id made
+# of [A-Za-z0-9._-], epoch-ms all digits) are read. Every other name, including
+# hidden temp files and other .json names, plus symlinks and subfolders, is
+# ignored and left in place: never read, moved, or recorded in answers_seen. A
+# correctly named file with bad content is rejected malformed. A read file
+# ends in handled/ (resolved) or rejected/ and is never deleted; a name
+# already present there gets an epoch suffix.
 #
 # Outcomes (answers_seen status and reason):
 #   picked_up            validated and about to be fed; a crash here is replayed
 #                        with the exact recorded line, so replay stays idempotent
 #   resolved             the intake recorded the answer (or an exact replay)
-#   rejected malformed   bad name, oversized, invalid JSON, wrong fields or source
+#   rejected malformed   oversized, invalid JSON, wrong fields or source
 #   rejected question-changed  fingerprint differs from the hold as now worded
 #   rejected unknown-option    option key not among the hold's options
 #   rejected too-long    answer plus note exceed the intake's 500-character bound
@@ -115,13 +120,16 @@ ensure_inbox() {
   (umask 077; mkdir -p "$INBOX") && [ -d "$INBOX" ] && [ ! -L "$INBOX" ]
 }
 
+# Exact drop-file name: `<hold_id>-<epoch-ms>.json`, hold_id not starting with a dot.
+drop_name() { [[ "$1" =~ ^[A-Za-z0-9_-][A-Za-z0-9._-]*-[0-9]+\.json$ ]]; }
+
 pending_files() {
   local f name
   [ -d "$INBOX" ] || return 0
   for f in "$INBOX"/*.json; do
     [ -f "$f" ] && [ ! -L "$f" ] || continue
     name=${f##*/}
-    [[ "$name" =~ ^[A-Za-z0-9_-][A-Za-z0-9._-]*\.json$ ]] || continue
+    drop_name "$name" || continue
     printf '%s\n' "$name"
   done | LC_ALL=C sort | head -n "$ROUND_MAX"
 }
@@ -209,10 +217,7 @@ process_file() {  # <name>
       return
       ;;
   esac
-  if [[ ! "$name" =~ ^([A-Za-z0-9._-]+)-[0-9]+\.json$ ]]; then
-    reject "$name" "" malformed
-    return
-  fi
+  [[ "$name" =~ ^(.+)-[0-9]+\.json$ ]] || return 0
   hold=${BASH_REMATCH[1]}
   size=$(wc -c < "$path" | tr -d '[:space:]')
   if [ "${size:-0}" -gt "$MAX_FILE_BYTES" ]; then
@@ -321,7 +326,7 @@ cmd_autohandle() {
   load_holds || die "cannot read the backlog's captain holds"
   while IFS= read -r name; do
     [ -n "$name" ] || continue
-    case "$name" in */*|.*) continue ;; esac
+    drop_name "$name" || continue
     process_file "$name" || rc=1
   done < <(result_files "$result")
   fm_lock_release "$LOCK" || true

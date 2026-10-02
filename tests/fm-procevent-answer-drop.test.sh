@@ -151,6 +151,29 @@ assert_present "$INBOX/handled/q-replay-11.json" "expected q-replay-11.json"
 assert_present "$INBOX/handled/q-replay-11.json."* "expected q-replay-11.json."
 pass "replay after a crash is idempotent and never deletes evidence"
 
+# --- name filter and hard-link publish ----------------------------------------------
+hold q-link --title "Link" --reason "Link?"
+FP_LINK=$(sha "Link?")
+printf '{}' > "$INBOX/.q-link.123.abcd.tmp"
+printf '{}' > "$INBOX/notes.json"
+printf '{}' > "$INBOX/q-link-abc.json"
+printf '{}' > "$INBOX/.q-link-13.json"
+round_names() { in_home "$ADAPTER" poll | sed -n 's/^file: //p'; }
+drop .q-link.123.abcd.tmp q-link "$FP_LINK" '{"text":"go"}'
+ln "$INBOX/.q-link.123.abcd.tmp" "$INBOX/q-link-13.json"
+assert_equals "$(round_names)" "q-link-13.json" "mid-publish file (link count 2) is eligible; hidden temp is not"
+round 9
+assert_equals "$(seen q-link-13.json)" "resolved " "mid-publish hard link is read correctly"
+rm -f "$INBOX/.q-link.123.abcd.tmp"
+assert_present "$INBOX/handled/q-link-13.json" "expected q-link-13.json"
+assert_equals "$(grep -c '"file":"q-link-13.json"' "$HOME_DIR/state/answer-drop.seen.jsonl" | tr -d ' ')" 2 "published file is consumed once (picked_up + resolved)"
+for n in notes.json q-link-abc.json .q-link-13.json; do
+  assert_present "$INBOX/$n" "expected $n left in place"
+  assert_equals "$(seen "$n")" "" "$n is never recorded"
+done
+assert_equals "$(cat "$INBOX/notes.json")" "{}" "ignored file is untouched"
+pass "only <hold_id>-<epoch-ms>.json names are consumed; hard-link publish is read once"
+
 # --- runner integration --------------------------------------------------------------
 hold q-run --title "Runner" --reason "Run?"
 drop q-run-12.json q-run "$(sha "Run?")" '{"text":"yes"}'

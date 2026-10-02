@@ -1,0 +1,107 @@
+=== [BEFORE base 4cc5c15]
+--- decoys only; arm --if-pending:
+armed: answer-drop
+--- decoys only; poll (5s cap):
+answer-drop: $LAB/state/answer-drop
+file: notes.json
+file: q-link-abc.json
+file: q-link.json
+poll rc=0 (142 = alarm: still waiting, nothing eligible)
+--- inbox (link count, name) mid-publish:
+1  .q-link-13.json
+2  .q-link.4242.ab12cd.tmp
+1  notes.json
+2  q-link-1790000000000.json
+1  q-link-abc.json
+1  q-link.json
+--- poll:
+answer-drop: $LAB/state/answer-drop
+file: notes.json
+file: q-link-1790000000000.json
+file: q-link-abc.json
+file: q-link.json
+poll rc=0
+--- arm --if-pending:
+armed: answer-drop
+--- start real runner (fm-procevent.sh start answer-drop) in lab, isolated claim root
+--- runner round 1 result:
+answer-drop: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.S3kg93/state/answer-drop
+file: notes.json
+file: q-link-1790000000000.json
+file: q-link-abc.json
+file: q-link.json
+--- round 1 acknowledged (.handled): yes
+--- check wake queued: 1
+--- adapter read of round 1:
+notes.json	rejected	malformed	
+q-link-1790000000000.json	rejected	not-open	q-link
+q-link-abc.json	rejected	malformed	
+q-link.json	rejected	malformed	
+--- autohandle on forged decoy-only result (ack of unknown seq 99 expected to fail; inspect files):
+error: cannot durably record handling: answer-drop 99
+--- runner output tail:
+autohandled: answer-drop
+captured: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.S3kg93/state/procevent-inbox/answer-drop.1.result
+--- inbox after:
+./.q-link-13.json
+./rejected/notes.json
+./rejected/q-link-1790000000000.json
+./rejected/q-link-abc.json
+./rejected/q-link.json
+--- ledger:
+notes.json rejected malformed
+q-link-1790000000000.json rejected not-open
+q-link-abc.json rejected malformed
+q-link.json rejected malformed
+--- answers_seen (home summary):
+{"file":"q-link.json","hold_id":null,"status":"rejected","reason":"malformed"}
+{"file":"q-link-abc.json","hold_id":null,"status":"rejected","reason":"malformed"}
+{"file":"q-link-1790000000000.json","hold_id":"q-link","status":"rejected","reason":"not-open"}
+{"file":"notes.json","hold_id":null,"status":"rejected","reason":"malformed"}
+--- decoy notes.json contents: MOVED
+lab removed: yes
+
+=== [AFTER target 05e9a42]
+--- decoys only; arm --if-pending:
+not-armed: no answer waiting in $LAB/state/answer-drop
+--- decoys only; poll (5s cap):
+/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-base.zQpDSL/drive.sh: line 10: 36854 Alarm clock: 14            perl -e 'alarm shift; exec @ARGV' "$s" "${ENVV[@]}" "$@" 2> /dev/null
+poll rc=142 (142 = alarm: still waiting, nothing eligible)
+--- inbox (link count, name) mid-publish:
+1  .q-link-13.json
+2  .q-link.4242.ab12cd.tmp
+1  notes.json
+2  q-link-1790000000000.json
+1  q-link-abc.json
+1  q-link.json
+--- poll:
+answer-drop: $LAB/state/answer-drop
+file: q-link-1790000000000.json
+poll rc=0
+--- arm --if-pending:
+armed: answer-drop
+--- start real runner (fm-procevent.sh start answer-drop) in lab, isolated claim root
+--- runner round 1 result:
+answer-drop: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.Wa4Brq/state/answer-drop
+file: q-link-1790000000000.json
+--- round 1 acknowledged (.handled): yes
+--- check wake queued: 1
+--- adapter read of round 1:
+q-link-1790000000000.json	rejected	not-open	q-link
+--- autohandle on forged decoy-only result (ack of unknown seq 99 expected to fail; inspect files):
+error: cannot durably record handling: answer-drop 99
+--- runner output tail:
+autohandled: answer-drop
+captured: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.Wa4Brq/state/procevent-inbox/answer-drop.1.result
+--- inbox after:
+./.q-link-13.json
+./notes.json
+./q-link-abc.json
+./q-link.json
+./rejected/q-link-1790000000000.json
+--- ledger:
+q-link-1790000000000.json rejected not-open
+--- answers_seen (home summary):
+{"file":"q-link-1790000000000.json","hold_id":"q-link","status":"rejected","reason":"not-open"}
+--- decoy notes.json contents: {}
+lab removed: yes

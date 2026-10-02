@@ -1,0 +1,149 @@
+=== S1 record a site after a staging deploy ===
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --staging-url https://truss-staging.netlify.app --production-url https://trussservicesllc.com --staging-sha abc1234def --waiting 3 --deploy staging --result ok
+{"project":"truss","updated":"2026-10-02T21:31:54Z","staging_url":"https://truss-staging.netlify.app","production_url":"https://trussservicesllc.com","staging_sha":"abc1234def","waiting":3,"last_deploy":{"env":"staging","result":"ok","at":"2026-10-02T21:31:54Z"}}
+[exit 0]
+
+=== S2 refusals ===
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --staging-url https://x.example/a(b)
+fm-release: link must not contain spaces or parentheses: https://x.example/a(b)
+[exit 1]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --staging-url https://x.example/a b
+fm-release: link must not contain spaces or parentheses: https://x.example/a b
+[exit 1]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --staging-sha XYZ1234
+fm-release: --staging-sha must be a lowercase hex commit: XYZ1234
+[exit 1]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --deploy production
+fm-release: --deploy and --result go together
+[exit 1]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record onlywaiting --waiting 0
+{"project":"onlywaiting","updated":"2026-10-02T21:31:54Z","waiting":0}
+[exit 0]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh card onlywaiting
+fm-release: onlywaiting has no changes waiting for production
+[exit 1]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record nolink --waiting 2
+{"project":"nolink","updated":"2026-10-02T21:31:54Z","waiting":2}
+[exit 0]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh card nolink
+fm-release: nolink has no staging link recorded
+[exit 1]
+record after refusals:
+{"staging_url":"https://truss-staging.netlify.app","staging_sha":"abc1234def","waiting":3}
+
+=== S3 card raises the call; home summary shows it in decisions_open ===
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh card truss
+release-truss-1790976714
+[exit 0]
+decisions_open row:
+{"id":"release-truss-1790976714","project":"truss","question":"Send truss to production? 3 changes waiting, staging https://truss-staging.netlify.app at abc1234","options":[{"key":"send","label":"Send"},{"key":"not-yet","label":"Not yet"}]}
+--- fm-captain-hold.sh open release-truss-1790976714
+open: yes
+
+=== S4 refresh re-holds same call; stale answer is refused ===
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --waiting 4 --staging-sha def5678
+{"project":"truss","updated":"2026-10-02T21:32:00Z","staging_url":"https://truss-staging.netlify.app","production_url":"https://trussservicesllc.com","staging_sha":"def5678","waiting":4,"last_deploy":{"env":"staging","result":"ok","at":"2026-10-02T21:31:54Z"},"card":"release-truss-1790976714","pinned":{"release-truss-1790976714":"abc1234def"}}
+[exit 0]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh card truss
+release-truss-1790976714
+[exit 0]
+{"id":"release-truss-1790976714","project":"truss","question":"Send truss to production? 4 changes waiting, staging https://truss-staging.netlify.app at abc1234; staging has since moved to def5678, send releases only abc1234","options":[{"key":"send","label":"Send"},{"key":"not-yet","label":"Not yet"}]}
+pinned: {"release-truss-1790976714":"abc1234def"}
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --waiting 5
+{"project":"truss","updated":"2026-10-02T21:32:06Z","staging_url":"https://truss-staging.netlify.app","production_url":"https://trussservicesllc.com","staging_sha":"def5678","waiting":5,"last_deploy":{"env":"staging","result":"ok","at":"2026-10-02T21:31:54Z"},"card":"release-truss-1790976714","pinned":{"release-truss-1790976714":"abc1234def"}}
+[exit 0]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh card truss
+release-truss-1790976714
+[exit 0]
+{"id":"release-truss-1790976714","project":"truss","question":"Send truss to production? 5 changes waiting, staging https://truss-staging.netlify.app at abc1234; staging has since moved to def5678, send releases only abc1234","options":[{"key":"send","label":"Send"},{"key":"not-yet","label":"Not yet"}]}
+pinned: {"release-truss-1790976714":"abc1234def"}
+--- AIOS answer with the fingerprint of the old wording:
+release-truss-1790976714-1790976731000.json	rejected	question-changed	release-truss-1790976714
+call release-truss-1790976714 still open after stale answer
+
+=== S5 send answer through the AIOS drop folder ===
+release-truss-1790976714-1790976736000.json	resolved		release-truss-1790976714
+answers_seen[0]: {"file":"release-truss-1790976714-1790976736000.json","hold_id":"release-truss-1790976714","status":"resolved","reason":null,"at":"2026-10-02T21:32:21Z"}
+still in decisions_open? ''
+  body: "Resolution recorded by fm-captain-hold.\nDecision digest: f1c9d79e10ee0d31228eb86fb444d52a67902f73f2120b08c501940679561b2d\nResolution mode: answered\n\nCaptain decision:\nCaptain answered this call through aios-ui.\nTask: release-truss-1790976714\nAnswer: send\nAnswer as shown to the captain: Send"
+
+=== S6 staging moves after send; next card is a new call; pinned[A] unchanged ===
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --staging-sha 0123abcd --waiting 6
+{"project":"truss","updated":"2026-10-02T21:32:23Z","staging_url":"https://truss-staging.netlify.app","production_url":"https://trussservicesllc.com","staging_sha":"0123abcd","waiting":6,"last_deploy":{"env":"staging","result":"ok","at":"2026-10-02T21:31:54Z"},"card":"release-truss-1790976714","pinned":{"release-truss-1790976714":"abc1234def"}}
+[exit 0]
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh card truss
+release-truss-1790976744
+[exit 0]
+{"id":"release-truss-1790976744","project":"truss","question":"Send truss to production? 6 changes waiting, staging https://truss-staging.netlify.app at 0123abc","options":[{"key":"send","label":"Send"},{"key":"not-yet","label":"Not yet"}]}
+pinned: {"release-truss-1790976714":"abc1234def","release-truss-1790976744":"0123abcd"}
+A=release-truss-1790976714 -> abc1234def  (the commit to release after send on A)
+
+=== S7 production deploy recorded; sites[] in state/home-summary.json ===
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --waiting 0 --deploy production --result ok
+{"project":"truss","updated":"2026-10-02T21:32:30Z","staging_url":"https://truss-staging.netlify.app","production_url":"https://trussservicesllc.com","staging_sha":"0123abcd","waiting":0,"last_deploy":{"env":"production","result":"ok","at":"2026-10-02T21:32:30Z"},"card":"release-truss-1790976744","pinned":{"release-truss-1790976714":"abc1234def","release-truss-1790976744":"0123abcd"}}
+[exit 0]
+sites[]:
+[
+  {
+    "project": "nolink",
+    "staging_url": null,
+    "production_url": null,
+    "staging_sha": null,
+    "waiting": 2,
+    "last_deploy": null
+  },
+  {
+    "project": "onlywaiting",
+    "staging_url": null,
+    "production_url": null,
+    "staging_sha": null,
+    "waiting": 0,
+    "last_deploy": null
+  },
+  {
+    "project": "truss",
+    "staging_url": "https://truss-staging.netlify.app",
+    "production_url": "https://trussservicesllc.com",
+    "staging_sha": "0123abcd",
+    "waiting": 0,
+    "last_deploy": {
+      "env": "production",
+      "result": "ok",
+      "at": "2026-10-02T21:32:30Z"
+    }
+  }
+]
+sites[] leak card/pinned? false
+
+=== S8 an unanswered call aged 14 days is superseded and re-raised ===
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh record truss --waiting 2
+{"project":"truss","updated":"2026-10-02T21:32:31Z","staging_url":"https://truss-staging.netlify.app","production_url":"https://trussservicesllc.com","staging_sha":"0123abcd","waiting":2,"last_deploy":{"env":"production","result":"ok","at":"2026-10-02T21:32:30Z"},"card":"release-truss-1790976744","pinned":{"release-truss-1790976714":"abc1234def","release-truss-1790976744":"0123abcd"}}
+[exit 0]
+B=release-truss-1790976744 open? yes
+B in decisions_open 15 days later (before card)? ''
+
+$ /Users/justinlobaito/.no-mistakes/worktrees/d2386019607f/01M3Z7A6P9S484M333QVY4KA6X/bin/fm-release.sh card truss
+release-truss-1792272751
+[exit 0]
+C in decisions_open: {"id":"release-truss-1792272751","question":"Send truss to production? 2 changes waiting, staging https://truss-staging.netlify.app at 0123abc"}
+B still open? no
+  body: "Resolution recorded by fm-captain-hold.\nDecision digest: 405d0004d12d3b2500401e4649ddebaf31573bf5fcd44bd6c85da88b42db0d0b\nResolution mode: reconciled\n\nReconciliation evidence:\nAged off the Decisions page after 15 days unanswered; firstmate raised the release call again as release-truss-1792272751."
+pinned: {"release-truss-1790976714":"abc1234def","release-truss-1790976744":"0123abcd","release-truss-1792272751":"0123abcd"}

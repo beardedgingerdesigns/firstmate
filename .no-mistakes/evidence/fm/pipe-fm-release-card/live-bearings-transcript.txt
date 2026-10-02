@@ -1,0 +1,6 @@
+=== S9 in-session decisions view (fm-bearings-snapshot) shows a release call ===
+$ fm-release.sh card acme
+release-acme-1790976775
+$ fm-bearings-snapshot.sh
+26:decisions_open[2]{id,key,verb,summary,owner}:
+28:  release-acme-1790976775,release-acme-1790976775,captain-hold,"Send acme to production: Send acme to production? 1 change waiting, staging https://acme-s…",(main)

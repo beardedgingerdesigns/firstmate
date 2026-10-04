@@ -1,0 +1,144 @@
+
+=== product under test ===
+root=/tmp/fm-relaunch-base.O3gP3H label=base trace=off
+herdr=herdr 0.8.0 claude=2.1.289 (Claude Code)
+
+=== lab home + lab Herdr session ===
+home=/private/tmp/fm-lab.hwNkWP session=fm-lab-rl-base-97129-9110
+
+=== launch the first real Claude worker (fm-spawn.sh --relaunch into the agent-free pane) ===
+●  watcher supervision needs Stop-owned automatic recovery; inspect the hook registration and startup status before ending the turn.
+●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+warning: /private/tmp/fm-lab.hwNkWP/data/rl-base/launch-brief.md records no ship branch; defaulting to legacy branch fm/rl-base
+warning: /private/tmp/fm-lab.hwNkWP/data/rl-base/launch-brief.md records no delivery contract line (scaffolded before ship briefs recorded one); launching on the explicit --mode no-mistakes - confirm its definition of done matches
+spawned rl-base harness=claude kind=ship mode=no-mistakes yolo=off window=fm-lab-rl-base-97129-9110:w1:p2 worktree=/private/tmp/fm-lab.hwNkWP/wt
+agent_state=alive
+
+=== worker pane (first incarnation) ===
+  /1791129455-5f64dbfefc0ec138.msg' and handle its
+  contents as Firstmate operational input.
+
+  Read 1 file
+
+⏺ READY
+
+✻ Cogitated for 5s · done 10:57 AM
+
+──────────────────────────────────────────────────────
+❯
+──────────────────────────────────────────────────────
+  ⚠ Transcript saving is off — inherited CLAUDE_COD…
+  Opus 5.5 (1M context) · high │ wt ░░░░░░░░░░ 8% 1…
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+=== arm the PR merge watch: fm-pr-check.sh rl-base https://github.com/cli/cli/pull/1 ===
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+armed: state/rl-base.check.sh
+
+=== task record before relaunch ===
+    window=fm-lab-rl-base-97129-9110:w1:p2
+    endpoint_task_id=rl-base
+    worktree=/private/tmp/fm-lab.hwNkWP/wt
+    project=/private/tmp/fm-lab.hwNkWP/projects/demo
+    harness=claude
+    kind=ship
+    mode=no-mistakes
+    yolo=off
+    branch=fm/rl-base
+    tasktmp=/tmp/fm-rl-base
+    model=default
+    effort=default
+    busy_gen=g1791129449.617.2055
+    spawn_gen=s1791129450.97971.22397
+    backend=herdr
+    herdr_session=fm-lab-rl-base-97129-9110
+    herdr_workspace_id=w1
+    herdr_tab_id=w1:t2
+    herdr_pane_id=w1:p2
+    pr=https://github.com/cli/cli/pull/1
+    pr_head=e9a3253762e768badaa1d4a5b3d267416d1e42f4
+
+=== fm-control.sh rl-base relaunch --note ... ===
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/tmp/fm-lab.hwNkWP
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/tmp/fm-lab.hwNkWP
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+warning: /private/tmp/fm-lab.hwNkWP/data/rl-base/launch-brief.md records no ship branch; defaulting to legacy branch fm/rl-base
+warning: /private/tmp/fm-lab.hwNkWP/data/rl-base/launch-brief.md records no delivery contract line (scaffolded before ship briefs recorded one); launching on the explicit --mode no-mistakes - confirm its definition of done matches
+relaunched rl-base harness=claude from=claude model=default effort=default backend=herdr endpoint=fm-lab-rl-base-97129-9110:w1:p2 worktree=/private/tmp/fm-lab.hwNkWP/wt
+relaunch exit=0
+agent_state=alive
+
+=== task record after relaunch ===
+    window=fm-lab-rl-base-97129-9110:w1:p2
+    endpoint_task_id=rl-base
+    worktree=/private/tmp/fm-lab.hwNkWP/wt
+    project=/private/tmp/fm-lab.hwNkWP/projects/demo
+    harness=claude
+    kind=ship
+    mode=no-mistakes
+    yolo=off
+    branch=fm/rl-base
+    tasktmp=/tmp/fm-rl-base
+    model=default
+    effort=default
+    busy_gen=g1791129511.19029.17172
+    spawn_gen=s1791129512.17832.21513
+    backend=herdr
+    herdr_session=fm-lab-rl-base-97129-9110
+    herdr_workspace_id=w1
+    herdr_tab_id=w1:t2
+    herdr_pane_id=w1:p2
+    pr=https://github.com/cli/cli/pull/1
+    pr_head=e9a3253762e768badaa1d4a5b3d267416d1e42f4
+    control_relaunch_tx=14958.20261004T155828Z.11900
+
+=== worker pane (replacement) ===
+
+
+⏺ READY
+
+✻ Churned for 13s · done 10:58 AM
+
+──────────────────────────────────────────────────────
+❯
+──────────────────────────────────────────────────────
+  ⚠ Transcript saving is off — inherited CLAUDE_COD…
+  Opus 5.5 (1M context) · high │ wt ░░░░░░░░░░ 8% 9…
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+=== watcher: run the real bin/fm-watch.sh until it reports on the check ===
+    rl-base.busy-gen
+    rl-base.busy-state
+    rl-base.check.sh
+    rl-base.control-relaunch
+    rl-base.control-relaunch.brief-prior
+    rl-base.control-relaunch.meta-prior
+    rl-base.control-relaunch.note
+    rl-base.git-hooks
+    rl-base.inbox
+    rl-base.meta
+    rl-base.pr-poll
+    rl-base.pr-poll-registration
+    rl-base.turn-ended
+watcher output (1 run(s)):
+    check: rejected unauthenticated state checks: /private/tmp/fm-lab.hwNkWP/state/rl-base.check.sh
+
+=== state after the watcher ===
+    rl-base.busy-gen
+    rl-base.busy-state
+    rl-base.check.sh
+    rl-base.control-relaunch
+    rl-base.control-relaunch.brief-prior
+    rl-base.control-relaunch.meta-prior
+    rl-base.control-relaunch.note
+    rl-base.git-hooks
+    rl-base.inbox
+    rl-base.meta
+    rl-base.pr-poll
+    rl-base.pr-poll-registration
+    rl-base.turn-ended
+
+=== cleanup ===
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/tmp/fm-lab.hwNkWP
+stopped rl-base harness=claude backend=herdr endpoint=fm-lab-rl-base-97129-9110:w1:p2 worktree=/private/tmp/fm-lab.hwNkWP/wt
+lab session fm-lab-rl-base-97129-9110 torn down; default-session tripwire unchanged
+lab home removed
+RESULT[base]=merge-watch-REFUSED-as-unauthenticated

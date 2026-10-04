@@ -1,0 +1,8 @@
+=== fixed commit: arm the merge watch, then something else appends a foreign key after pr= ===
+armed: state/rl-guard.check.sh
+    pr=https://github.com/cli/cli/pull/1
+    pr_head=e9a3253762e768badaa1d4a5b3d267416d1e42f4
+    some_other_key=1
+=== fixed commit watcher ===
+    check: rejected unauthenticated state checks: /private/tmp/fm-lab.rlguard/state/rl-guard.check.sh
+    still armed, never executed: rl-guard.check.sh

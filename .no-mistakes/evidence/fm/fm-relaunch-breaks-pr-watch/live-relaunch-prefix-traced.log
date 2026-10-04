@@ -1,0 +1,149 @@
+
+=== product under test ===
+root=/tmp/fm-relaunch-mid.C85jGO label=mid trace=on
+herdr=herdr 0.8.0 claude=2.1.289 (Claude Code)
+
+=== lab home + lab Herdr session ===
+home=/private/tmp/fm-lab.1HFI4T session=fm-lab-rl-mid-67558-9060
+
+=== trace context on for this home's session ===
+.trace-context-effective: 67551 on
+
+=== launch the first real Claude worker (fm-spawn.sh --relaunch into the agent-free pane) ===
+●  watcher supervision needs Stop-owned automatic recovery; inspect the hook registration and startup status before ending the turn.
+●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+warning: /private/tmp/fm-lab.1HFI4T/data/rl-mid/launch-brief.md records no ship branch; defaulting to legacy branch fm/rl-mid
+warning: /private/tmp/fm-lab.1HFI4T/data/rl-mid/launch-brief.md records no delivery contract line (scaffolded before ship briefs recorded one); launching on the explicit --mode no-mistakes - confirm its definition of done matches
+spawned rl-mid harness=claude kind=ship mode=no-mistakes yolo=off window=fm-lab-rl-mid-67558-9060:w1:p2 worktree=/private/tmp/fm-lab.1HFI4T/wt
+agent_state=alive
+
+=== worker pane (first incarnation) ===
+  /1791129680-fcb2e8365f5bd3bf.msg' and handle its
+  contents as Firstmate operational input.
+
+  Read 1 file
+
+⏺ READY
+
+✻ Cogitated for 7s · done 11:01 AM
+
+──────────────────────────────────────────────────────
+❯
+──────────────────────────────────────────────────────
+  ⚠ Transcript saving is off — inherited CLAUDE_COD…
+  Opus 5.5 (1M context) · high │ wt ░░░░░░░░░░ 8% 1…
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+=== arm the PR merge watch: fm-pr-check.sh rl-mid https://github.com/cli/cli/pull/1 ===
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+armed: state/rl-mid.check.sh
+
+=== task record before relaunch ===
+    window=fm-lab-rl-mid-67558-9060:w1:p2
+    endpoint_task_id=rl-mid
+    worktree=/private/tmp/fm-lab.1HFI4T/wt
+    project=/private/tmp/fm-lab.1HFI4T/projects/demo
+    harness=claude
+    kind=ship
+    mode=no-mistakes
+    yolo=off
+    branch=fm/rl-mid
+    tasktmp=/tmp/fm-rl-mid
+    model=default
+    effort=default
+    busy_gen=g1791129675.70553.2567
+    spawn_gen=s1791129676.68529.30226
+    backend=herdr
+    herdr_session=fm-lab-rl-mid-67558-9060
+    herdr_workspace_id=w1
+    herdr_tab_id=w1:t2
+    herdr_pane_id=w1:p2
+    traceparent=00-075a8dedff3f2c0f29075358dfa580f5-3197d9d624009ada-01
+    pr=https://github.com/cli/cli/pull/1
+    pr_head=e9a3253762e768badaa1d4a5b3d267416d1e42f4
+
+=== fm-control.sh rl-mid relaunch --note ... ===
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/tmp/fm-lab.1HFI4T
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/tmp/fm-lab.1HFI4T
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+warning: /private/tmp/fm-lab.1HFI4T/data/rl-mid/launch-brief.md records no ship branch; defaulting to legacy branch fm/rl-mid
+warning: /private/tmp/fm-lab.1HFI4T/data/rl-mid/launch-brief.md records no delivery contract line (scaffolded before ship briefs recorded one); launching on the explicit --mode no-mistakes - confirm its definition of done matches
+relaunched rl-mid harness=claude from=claude model=default effort=default backend=herdr endpoint=fm-lab-rl-mid-67558-9060:w1:p2 worktree=/private/tmp/fm-lab.1HFI4T/wt
+relaunch exit=0
+agent_state=alive
+
+=== task record after relaunch ===
+    window=fm-lab-rl-mid-67558-9060:w1:p2
+    endpoint_task_id=rl-mid
+    worktree=/private/tmp/fm-lab.1HFI4T/wt
+    project=/private/tmp/fm-lab.1HFI4T/projects/demo
+    harness=claude
+    kind=ship
+    mode=no-mistakes
+    yolo=off
+    branch=fm/rl-mid
+    tasktmp=/tmp/fm-rl-mid
+    model=default
+    effort=default
+    busy_gen=g1791129735.88178.15294
+    spawn_gen=s1791129736.86580.22486
+    backend=herdr
+    herdr_session=fm-lab-rl-mid-67558-9060
+    herdr_workspace_id=w1
+    herdr_tab_id=w1:t2
+    herdr_pane_id=w1:p2
+    control_relaunch_tx=84531.20261004T160212Z.20907
+    pr=https://github.com/cli/cli/pull/1
+    pr_head=e9a3253762e768badaa1d4a5b3d267416d1e42f4
+    traceparent=00-075a8dedff3f2c0f29075358dfa580f5-3197d9d624009ada-01
+
+=== worker pane (replacement) ===
+  nothing to act on. No files edited, no PR opened;
+  the only command run was the inbox listing the
+  relaunch note asked for.
+
+✻ Crunched for 15s · done 11:02 AM
+
+──────────────────────────────────────────────────────
+❯
+──────────────────────────────────────────────────────
+  ⚠ Transcript saving is off — inherited CLAUDE_COD…
+  Opus 5.5 (1M context) · high │ wt ░░░░░░░░░░ 8% 1…
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+=== watcher: run the real bin/fm-watch.sh until it reports on the check ===
+    rl-mid.busy-gen
+    rl-mid.busy-state
+    rl-mid.check.sh
+    rl-mid.control-relaunch
+    rl-mid.control-relaunch.brief-prior
+    rl-mid.control-relaunch.meta-prior
+    rl-mid.control-relaunch.note
+    rl-mid.git-hooks
+    rl-mid.inbox
+    rl-mid.meta
+    rl-mid.pr-poll
+    rl-mid.pr-poll-registration
+    rl-mid.turn-ended
+watcher output (1 run(s)):
+    check: rejected unauthenticated state checks: /private/tmp/fm-lab.1HFI4T/state/rl-mid.check.sh
+
+=== state after the watcher ===
+    rl-mid.busy-gen
+    rl-mid.busy-state
+    rl-mid.check.sh
+    rl-mid.control-relaunch
+    rl-mid.control-relaunch.brief-prior
+    rl-mid.control-relaunch.meta-prior
+    rl-mid.control-relaunch.note
+    rl-mid.git-hooks
+    rl-mid.inbox
+    rl-mid.meta
+    rl-mid.pr-poll
+    rl-mid.pr-poll-registration
+    rl-mid.turn-ended
+
+=== cleanup ===
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/tmp/fm-lab.1HFI4T
+stopped rl-mid harness=claude backend=herdr endpoint=fm-lab-rl-mid-67558-9060:w1:p2 worktree=/private/tmp/fm-lab.1HFI4T/wt
+lab session fm-lab-rl-mid-67558-9060 torn down; default-session tripwire unchanged
+lab home removed
+RESULT[mid]=merge-watch-REFUSED-as-unauthenticated

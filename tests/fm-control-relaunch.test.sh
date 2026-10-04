@@ -490,6 +490,44 @@ test_relaunch_preserves_durable_task_metadata() {
   pass "fm-control relaunch: durable task metadata survives replacement launch publication"
 }
 
+test_relaunched_record_with_a_pr_still_passes_the_identity_parse() {
+  local dir out rc
+  dir=$(new_case pr-identity rl19b)
+  add_ship_task "$dir" rl19b claude
+  {
+    printf '%s\n' 'pr=https://github.com/example/repo/pull/19'
+    printf '%s\n' 'pr_head=0123456789abcdef0123456789abcdef01234567'
+  } >> "$dir/home/state/rl19b.meta"
+  out=$(run_control "$dir" rl19b relaunch --note "continuing review work"); rc=$?
+  expect_code 0 "$rc" "relaunch should succeed"$'\n'"$out"
+  [ -n "$(meta_field "$dir" rl19b control_relaunch_tx)" ] \
+    || fail "the relaunched record should carry its relaunch transaction"
+  bash -c '. "$1/bin/fm-pr-lib.sh" && fm_pr_metadata_identity_parse "$2"' _ "$ROOT" "$dir/home/state/rl19b.meta" \
+    || fail "a relaunched record with a PR must still pass the merge-watch identity parse"
+  pass "fm-control relaunch: a relaunched record with a PR still passes the merge-watch identity parse"
+}
+
+test_traced_relaunched_record_with_a_pr_still_passes_the_identity_parse() {
+  local dir out rc
+  dir=$(new_case pr-identity-traced rl19c)
+  add_ship_task "$dir" rl19c claude
+  {
+    printf '%s\n' 'pr=https://github.com/example/repo/pull/19'
+    printf '%s\n' 'pr_head=0123456789abcdef0123456789abcdef01234567'
+  } >> "$dir/home/state/rl19c.meta"
+  printf '%s\n' "$$" > "$dir/home/state/.lock"
+  printf '%s on\n' "$$" > "$dir/home/state/.trace-context-effective"
+  out=$(run_control "$dir" rl19c relaunch --note "continuing review work"); rc=$?
+  expect_code 0 "$rc" "traced relaunch should succeed"$'\n'"$out"
+  fm_trace_context_valid "$(meta_field "$dir" rl19c traceparent)" \
+    || fail "the traced relaunched record should carry its trace carrier"
+  [ "$(meta_field "$dir" rl19c pr)" = "https://github.com/example/repo/pull/19" ] \
+    || fail "the task PR must survive a traced relaunch"
+  bash -c '. "$1/bin/fm-pr-lib.sh" && fm_pr_metadata_identity_parse "$2"' _ "$ROOT" "$dir/home/state/rl19c.meta" \
+    || fail "a traced relaunched record with a PR must still pass the merge-watch identity parse"
+  pass "fm-control relaunch: a traced relaunched record with a PR still passes the merge-watch identity parse"
+}
+
 test_relaunch_serializes_concurrent_durable_metadata_publication() {
   local dir control_pid link_pid rc i=0 traceparent prepare launch_release waiting ready release
   dir=$(new_case metadata-race rl28)
@@ -2391,6 +2429,8 @@ test_relaunch_refuses_before_exit_when_the_composer_holds_pending_text
 test_relaunch_refuses_before_exit_when_the_composer_state_is_unproven
 test_relaunch_from_linked_home_preserves_recorded_worktree
 test_relaunch_preserves_durable_task_metadata
+test_relaunched_record_with_a_pr_still_passes_the_identity_parse
+test_traced_relaunched_record_with_a_pr_still_passes_the_identity_parse
 test_relaunch_serializes_concurrent_durable_metadata_publication
 test_disabled_relaunch_clears_prior_trace_context
 test_relaunch_appends_the_progress_note_to_the_instructions

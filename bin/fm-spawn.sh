@@ -5229,6 +5229,8 @@ spawn_record_traceparent() {
     acquired=1
   fi
   SPAWN_META_TMP="$STATE/.$ID.meta.trace.${BASHPID:-$$}"
+  # The carrier goes ahead of any pr= line rather than at the end, for the same
+  # reason control_relaunch_tx= does: the pr= identity block must stay last.
   if [ ! -f "$meta" ] || [ ! -w "$meta" ] ||
     ! awk -F= -v carrier="traceparent=$SPAWN_TRACEPARENT" '
       $1 == "traceparent" { next }

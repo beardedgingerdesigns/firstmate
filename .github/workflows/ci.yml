@@ -74,7 +74,8 @@ jobs:
           if-no-files-found: warn
 
   # Deterministic proof that portable parallel shards + portable serial + Herdr
-  # equal the complete tests/*.test.sh inventory with no missing or duplicates,
+  # equal the tests/*.test.sh inventory outside the runner's CI_EXCLUDED_TESTS
+  # with no missing or duplicates,
   # and that the portable serial CI shards partition that serial lane exactly.
   test-coverage:
     name: Test coverage guard

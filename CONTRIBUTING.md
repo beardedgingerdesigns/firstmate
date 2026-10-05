@@ -109,7 +109,7 @@ bin/fm-test-run.sh --changed --max-wall-ms 300000   # same automatic path with a
 bin/fm-test-run.sh --proven-isolated --jobs 4   # explicit local parallel of the individually proven set
 bin/fm-test-run.sh --lane portable-serial   # portable serial remainder (watcher/AFK/tmux/stateful)
 bin/fm-test-run.sh --list-lanes   # discover exact lane names, including the current CI serial shards
-bin/fm-test-run.sh --check-coverage   # prove portable shards + serial + serial shards + Herdr equal the full inventory
+bin/fm-test-run.sh --check-coverage   # prove portable shards + serial + serial shards + Herdr equal the full inventory minus the runner's CI_EXCLUDED_TESTS
 bin/fm-test-run.sh --all   # deliberate complete regression (optional local full walk; not no-mistakes Test)
 bin/fm-test-isolation-proof.sh --list   # proven portable parallel candidate set
 bin/fm-test-isolation-proof.sh --jobs 4 --json /tmp/fm-isolation-proof.json   # re-run the portable candidate proof

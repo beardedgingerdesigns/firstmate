@@ -42,7 +42,8 @@ Refresh `portable_parallel_weight_hints` with the slowest completed `duration_ms
 
 ## Portable serial remainder
 
-`portable-serial` includes every `tests/*.test.sh` that is neither proven-isolated nor `real-herdr-gated`.
+`portable-serial` includes every `tests/*.test.sh` that is neither proven-isolated nor `real-herdr-gated`, except the scripts named in `CI_EXCLUDED_TESTS`.
+[`bin/fm-test-run.sh`](../bin/fm-test-run.sh) owns that list and the reason for each entry; an excluded script is in no CI lane and still runs by path or under `--all`.
 It keeps watcher, lock, AFK, real tmux, daemon, secondmate lifecycle, bootstrap, the `live-harness-optin` family, GUI-backend, and other unproven work serial.
 Membership is derived rather than enumerated, so a newly added test lands here by default.
 
@@ -94,7 +95,7 @@ Measure native-Windows-only scripts through the focused Git Bash runner and reta
 ## Coverage guard
 
 `bin/fm-test-run.sh --check-coverage` verifies that both parallel lanes partition the proven-isolated set.
-It also verifies that the parallel lanes, portable serial lane, and real-Herdr family are disjoint and cover every `tests/*.test.sh` script.
+It also verifies that the parallel lanes, portable serial lane, and real-Herdr family are disjoint and cover every `tests/*.test.sh` script outside `CI_EXCLUDED_TESTS`.
 It separately verifies that the portable serial CI shards are non-empty, disjoint, and together equal the portable serial lane.
 It reports the unmeasured serial share as `serial_unhinted=` and refuses when that share exceeds `PORTABLE_SERIAL_MAX_UNHINTED_PERCENT`, so the shards stay balanced on evidence rather than on the default weight.
 

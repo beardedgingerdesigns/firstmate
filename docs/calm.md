@@ -171,6 +171,8 @@ tests/fm-calm-pi-queue-retention-live-e2e.test.sh
 FM_PI_LIVE_E2E=1 tests/fm-pi-primary-live-e2e.test.sh
 ```
 
+CI does not run `tests/fm-calm-pi-extension.test.sh`; `CI_EXCLUDED_TESTS` in `bin/fm-test-run.sh` owns that exclusion and its reason.
+
 ## Claude Code
 
 ### The firstmate-calm mod

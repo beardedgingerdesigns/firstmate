@@ -1,0 +1,36 @@
+## Which CI lane holds tests/fm-calm-pi-extension.test.sh — base 63fe176 vs target fa27bda
+### base
+portable-parallel-1      scripts=11   contains_pi_calm_test=no
+portable-parallel-2      scripts=13   contains_pi_calm_test=no
+portable-serial          scripts=204  contains_pi_calm_test=YES
+portable-serial-1of9     scripts=10   contains_pi_calm_test=no
+portable-serial-2of9     scripts=24   contains_pi_calm_test=YES
+portable-serial-3of9     scripts=24   contains_pi_calm_test=no
+portable-serial-4of9     scripts=25   contains_pi_calm_test=no
+portable-serial-5of9     scripts=25   contains_pi_calm_test=no
+portable-serial-6of9     scripts=24   contains_pi_calm_test=no
+portable-serial-7of9     scripts=24   contains_pi_calm_test=no
+portable-serial-8of9     scripts=24   contains_pi_calm_test=no
+portable-serial-9of9     scripts=24   contains_pi_calm_test=no
+real-herdr-gated         scripts=16   contains_pi_calm_test=no
+### target
+portable-parallel-1      scripts=11   contains_pi_calm_test=no
+portable-parallel-2      scripts=13   contains_pi_calm_test=no
+portable-serial          scripts=203  contains_pi_calm_test=no
+portable-serial-1of9     scripts=10   contains_pi_calm_test=no
+portable-serial-2of9     scripts=23   contains_pi_calm_test=no
+portable-serial-3of9     scripts=24   contains_pi_calm_test=no
+portable-serial-4of9     scripts=24   contains_pi_calm_test=no
+portable-serial-5of9     scripts=24   contains_pi_calm_test=no
+portable-serial-6of9     scripts=25   contains_pi_calm_test=no
+portable-serial-7of9     scripts=24   contains_pi_calm_test=no
+portable-serial-8of9     scripts=24   contains_pi_calm_test=no
+portable-serial-9of9     scripts=25   contains_pi_calm_test=no
+real-herdr-gated         scripts=16   contains_pi_calm_test=no
+
+## Every test CI ran at base but not at target (and vice versa)
+base CI total: 244   target CI total: 243
+dropped from CI:
+  tests/fm-calm-pi-extension.test.sh
+added to CI:
+  (end)

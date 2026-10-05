@@ -1,0 +1,15 @@
+## Documented restore path: empty CI_EXCLUDED_TESTS in a throwaway copy of the target tree
+661:CI_EXCLUDED_TESTS=""
+$ bin/fm-test-run.sh --check-coverage
+FM_TEST_COVERAGE ok total=244 parallel=24 parallel_max_ms=417163 parallel_imbalance_ms=2894 parallel_unhinted=0 serial=204 serial_shards=9 serial_unhinted=20 herdr=16
+exit=0
+lanes holding the Pi calm test after restore:
+  portable-serial-2of9
+
+## Guard still catches a real gap: exclude from the serial lane only (guard filter reverted)
+1034:  all_repo_tests | LC_ALL=C sort -u >"$tmp/all"
+$ bin/fm-test-run.sh --check-coverage
+fm-test-run: coverage guard: union of portable shards + portable serial + Herdr must equal tests/*.test.sh
+fm-test-run: missing from union:
+tests/fm-calm-pi-extension.test.sh
+exit=1

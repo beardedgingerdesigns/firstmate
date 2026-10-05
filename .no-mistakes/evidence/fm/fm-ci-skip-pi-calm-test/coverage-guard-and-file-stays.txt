@@ -1,0 +1,13 @@
+$ bin/fm-test-run.sh --check-coverage
+FM_TEST_COVERAGE ok total=243 parallel=24 parallel_max_ms=417163 parallel_imbalance_ms=2894 parallel_unhinted=0 serial=203 serial_shards=9 serial_unhinted=20 herdr=16
+exit=0
+
+## The file stays and is still selectable on purpose
+-rwxr-xr-x@ 1 justinlobaito  staff  235901 Oct  4 19:47 tests/fm-calm-pi-extension.test.sh
+$ bin/fm-test-run.sh --list tests/fm-calm-pi-extension.test.sh
+tests/fm-calm-pi-extension.test.sh
+exit=0
+$ bin/fm-test-run.sh --list --all | grep -c calm-pi-extension
+1
+$ bin/fm-test-run.sh --list --family <its family> | grep calm-pi-extension
+family=pure-contract-unit

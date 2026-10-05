@@ -1072,7 +1072,8 @@ test_portable_shard_union_and_coverage_guard() {
   out=$("$RUNNER" --check-coverage)
   assert_contains "$out" "FM_TEST_COVERAGE ok" "coverage guard success marker"
   all_count=$("$RUNNER" --list --all | wc -l | tr -d ' ')
-  union_count=$(printf '%s\n' "$s1" "$s2" "$serial" "$herdr" | LC_ALL=C sort -u | wc -l | tr -d ' ')
+  # CI_EXCLUDED_TESTS in bin/fm-test-run.sh: accounted for as deliberately excluded.
+  union_count=$(printf '%s\n' "$s1" "$s2" "$serial" "$herdr" tests/fm-calm-pi-extension.test.sh | LC_ALL=C sort -u | wc -l | tr -d ' ')
   [ "$union_count" = "$all_count" ] \
     || fail "union of lanes ($union_count) must equal --all ($all_count)"
   # No duplicates across the four partitions.

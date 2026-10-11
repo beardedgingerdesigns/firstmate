@@ -1,0 +1,10 @@
+# Scenario: real consumer - fm-quota-choose.sh picks a candidate from a real quota-axi snapshot while SIGPIPE is ignored
+# snapshot: quota-axi 0.1.53 --json (schema 5); 60 runs each, /bin/bash 3.2
+
+## base
+stdout (distinct answers over 60 runs): 60 codex gpt-5.6-sol
+stderr lines: 0 
+
+## target
+stdout (distinct answers over 60 runs): 60 codex gpt-5.6-sol
+stderr lines: 0 

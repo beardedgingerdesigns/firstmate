@@ -1,0 +1,27 @@
+# Regression check: this change's three test files run against the BASE code (76b378f) and the TARGET code (fdb725b)
+
+## tests/fm-timeout-lib.test.sh
+base   : FAIL -> not ok - system Bash top-level lost command status 0 (rc=127: bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable)
+target : PASS (17 checks ok) -> ok - fm_timed_out accepts 124 and 137 and nothing else
+
+## tests/fm-quota-choose.test.sh
+base   : FAIL -> not ok - provider-table lookup wrote to stderr with SIGPIPE ignored: bin/fm-quota-axi-lib.sh: line 138: printf: write error: Broken pipe
+target : PASS (58 checks ok) -> # all fm-quota-choose tests passed
+
+## tests/fm-procevent-quota.test.sh
+base   : FAIL -> not ok - one slow read then a good read did not stay live: quota: quota-codex
+target : PASS (33 checks ok) -> # all fm-procevent-quota tests passed
+
+## tests/fm-timeout-lib.test.sh with PATH=/usr/bin:/bin:/usr/sbin:/sbin under /bin/bash 3.2.57 (no Homebrew bash on PATH)
+target : PASS (17 checks ok)
+
+## tests/fm-dispatch-resolve.test.sh (fork's pinned dispatch resolver, a consumer of the changed lookup)
+target : PASS (25 checks ok) -> # all fm-dispatch-resolve tests passed
+
+## files changed 76b378f..fdb725b
+  bin/fm-procevent-quota.sh
+  bin/fm-quota-axi-lib.sh
+  bin/fm-timeout-lib.sh
+  tests/fm-procevent-quota.test.sh
+  tests/fm-quota-choose.test.sh
+  tests/fm-timeout-lib.test.sh

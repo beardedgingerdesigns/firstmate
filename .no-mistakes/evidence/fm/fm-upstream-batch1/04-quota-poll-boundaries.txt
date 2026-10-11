@@ -1,0 +1,62 @@
+# Scenario: quota watch boundaries - what must NOT be retried, and what must not be misreported (under /bin/bash 3.2)
+
+### TARGET: quota-axi not on PATH -> immediate terminal error, no retry budget spent
+$ PATH=/usr/bin:/bin fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 5
+  quota: quota-codex
+  status: error
+  detail: quota-axi is missing
+  condition_polls: 1
+  (exit 0, 0s)
+
+### TARGET: quota-axi reports version 0.1.0 (floor is 0.1.51) -> immediate 'incompatible', no retry
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 5
+  injected --json plan: none; FLAKY_VERSION=old
+  quota: quota-codex
+  status: error
+  detail: quota-axi is incompatible
+  condition_polls: 1
+  (exit 0, 0s)
+
+### TARGET (adversarial): --version probe hangs -> reported as timed out after 3 tries, NOT as incompatible
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 2
+  injected --json plan: none; FLAKY_VERSION=hang
+  quota: quota-codex
+  status: error
+  detail: 3 consecutive read failures; last quota-axi read timed out
+  condition_polls: 3
+  (exit 0, 10s)
+
+### TARGET (adversarial): --version probe fails once, then works -> tolerated, fires on poll 2
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 30
+  injected --json plan: none; FLAKY_VERSION=failonce
+  quota: quota-codex
+  status: low
+  detail: {"provider":"codex","best":{"scope":"all_models","status":"known","effectivePercentRemaining":77,"boundedBy":["weekly"],"limitingWindowIds":["weekly"],"pace":{"status":"ahead","aheadWindowIds":["weekly"],"worstReservePerce
+  condition_polls: 2
+  (exit 0, 2s)
+  quota-axi: 15:44:22 --version -> injected failure
+  quota-axi: 15:44:23 --json call 1 -> ok
+
+### TARGET: healthy quota (codex above a 10% threshold) with one failure mid-watch -> keeps watching silently
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 10 --timeout 30
+  injected --json plan: ok fail ok ok
+  (driver: still polling after 12s with no terminal output - stopped it)
+  (exit 99, 12s)
+  quota-axi: 15:44:25 --json call 1 -> ok
+  quota-axi: 15:44:27 --json call 2 -> fail
+  quota-axi: 15:44:28 --json call 3 -> ok
+  quota-axi: 15:44:31 --json call 4 -> ok
+  quota-axi: 15:44:33 --json call 5 -> ok
+  quota-axi: 15:44:36 --json call 6 -> ok
+
+### TARGET: no --timeout given (unbounded path): two failures then a good read -> fires on poll 3
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90
+  injected --json plan: fail fail ok
+  quota: quota-codex
+  status: low
+  detail: {"provider":"codex","best":{"scope":"all_models","status":"known","effectivePercentRemaining":77,"boundedBy":["weekly"],"limitingWindowIds":["weekly"],"pace":{"status":"ahead","aheadWindowIds":["weekly"],"worstReservePerce
+  condition_polls: 3
+  (exit 0, 5s)
+  quota-axi: 15:44:37 --json call 1 -> fail
+  quota-axi: 15:44:38 --json call 2 -> fail
+  quota-axi: 15:44:39 --json call 3 -> ok

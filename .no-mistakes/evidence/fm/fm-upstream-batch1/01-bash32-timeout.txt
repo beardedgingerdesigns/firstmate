@@ -1,0 +1,19 @@
+# Scenario: bounded command (fm_exec_timed) on macOS stock Bash
+$ /bin/bash --version | head -1
+GNU bash, version 3.2.57(1)-release (x86_64-apple-darwin24)
+
+## base (76b378f)
+[subshell] cmd='echo ran; exit 0' -> rc=127 output: /tmp/fm-batch1-test.pk2vnY/base/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable
+[subshell] cmd='echo ran; exit 7' -> rc=127 output: /tmp/fm-batch1-test.pk2vnY/base/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable
+[subshell] 'sleep 30' bounded at 1s -> rc=127 after 0.0s output: /tmp/fm-batch1-test.pk2vnY/base/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable
+[top-level] cmd='echo ran; exit 0' -> rc=127 output: /tmp/fm-batch1-test.pk2vnY/base/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable
+[top-level] cmd='echo ran; exit 7' -> rc=127 output: /tmp/fm-batch1-test.pk2vnY/base/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable
+[top-level] 'sleep 30' bounded at 1s -> rc=127 after 0.0s output: /tmp/fm-batch1-test.pk2vnY/base/bin/fm-timeout-lib.sh: line 224: BASHPID: unbound variable
+
+## target (fdb725b)
+[subshell] cmd='echo ran; exit 0' -> rc=0 output: ran
+[subshell] cmd='echo ran; exit 7' -> rc=7 output: ran
+[subshell] 'sleep 30' bounded at 1s -> rc=124 after 1.5s output: 
+[top-level] cmd='echo ran; exit 0' -> rc=0 output: ran
+[top-level] cmd='echo ran; exit 7' -> rc=7 output: ran
+[top-level] 'sleep 30' bounded at 1s -> rc=124 after 1.4s output: 

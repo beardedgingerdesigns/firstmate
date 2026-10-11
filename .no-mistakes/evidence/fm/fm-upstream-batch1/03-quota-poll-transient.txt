@@ -1,0 +1,87 @@
+# Scenario: quota watch (fm-procevent-quota.sh poll) against the real quota-axi 0.1.53, run under /bin/bash 3.2
+# Reads go to the real quota-axi; a wrapper on PATH injects failures only for the --json calls named in each plan.
+
+### real read, codex below a 90% threshold -> fires low on poll 1
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 30
+  injected --json plan: none
+  quota: quota-codex
+  status: low
+  detail: {"provider":"codex","best":{"scope":"all_models","status":"known","effectivePercentRemaining":77,"boundedBy":["weekly"],"limitingWindowIds":["weekly"],"pace":{"status":"ahead","aheadWindowIds":["weekly"],"worstReservePerce
+  condition_polls: 1
+  (exit 0, 2s)
+  quota-axi: 15:43:22 --json call 1 -> ok
+
+### TARGET fdb725b: two transient failures then a good read -> watch survives, fires on poll 3
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 30
+  injected --json plan: fail fail ok
+  quota: quota-codex
+  status: low
+  detail: {"provider":"codex","best":{"scope":"all_models","status":"known","effectivePercentRemaining":77,"boundedBy":["weekly"],"limitingWindowIds":["weekly"],"pace":{"status":"ahead","aheadWindowIds":["weekly"],"worstReservePerce
+  condition_polls: 3
+  (exit 0, 4s)
+  quota-axi: 15:43:24 --json call 1 -> fail
+  quota-axi: 15:43:25 --json call 2 -> fail
+  quota-axi: 15:43:26 --json call 3 -> ok
+
+### BASE 76b378f: same plan -> watch dies on the first failure
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 30
+  injected --json plan: fail fail ok
+  quota: quota-codex
+  status: error
+  detail: quota-axi --json failed or quota-axi is missing/incompatible
+  condition_polls: 1
+  (exit 0, 0s)
+  quota-axi: 15:43:28 --json call 1 -> fail
+
+### TARGET: three consecutive failures -> terminal error naming the streak
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 30
+  injected --json plan: fail fail fail
+  quota: quota-codex
+  status: error
+  detail: 3 consecutive read failures; last quota-axi read failed
+  condition_polls: 3
+  (exit 0, 3s)
+  quota-axi: 15:43:28 --json call 1 -> fail
+  quota-axi: 15:43:30 --json call 2 -> fail
+  quota-axi: 15:43:31 --json call 3 -> fail
+
+### TARGET: a good read resets the streak (2 fail, ok, 2 fail, ok, 3 fail) -> error only on poll 9
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 0 --timeout 30
+  injected --json plan: fail fail ok fail fail ok fail fail fail
+  quota: quota-codex
+  status: error
+  detail: 3 consecutive read failures; last quota-axi read failed
+  condition_polls: 9
+  (exit 0, 13s)
+  quota-axi: 15:43:31 --json call 1 -> fail
+  quota-axi: 15:43:33 --json call 2 -> fail
+  quota-axi: 15:43:34 --json call 3 -> ok
+  quota-axi: 15:43:36 --json call 4 -> fail
+  quota-axi: 15:43:38 --json call 5 -> fail
+  quota-axi: 15:43:39 --json call 6 -> ok
+  quota-axi: 15:43:42 --json call 7 -> fail
+  quota-axi: 15:43:43 --json call 8 -> fail
+  quota-axi: 15:43:44 --json call 9 -> fail
+
+### TARGET: one read hangs past --timeout, then a good read -> survives, fires on poll 2
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 3
+  injected --json plan: hang ok
+  quota: quota-codex
+  status: low
+  detail: {"provider":"codex","best":{"scope":"all_models","status":"known","effectivePercentRemaining":77,"boundedBy":["weekly"],"limitingWindowIds":["weekly"],"pace":{"status":"ahead","aheadWindowIds":["weekly"],"worstReservePerce
+  condition_polls: 2
+  (exit 0, 6s)
+  quota-axi: 15:43:44 --json call 1 -> hang
+  quota-axi: 15:43:49 --json call 2 -> ok
+
+### TARGET: three reads hang past --timeout -> terminal error says timed out
+$ fm-procevent-quota.sh poll --provider codex --interval 1 --threshold 90 --timeout 2
+  injected --json plan: hang hang hang
+  quota: quota-codex
+  status: error
+  detail: 3 consecutive read failures; last quota-axi read timed out
+  condition_polls: 3
+  (exit 0, 11s)
+  quota-axi: 15:43:51 --json call 1 -> hang
+  quota-axi: 15:43:54 --json call 2 -> hang
+  quota-axi: 15:43:58 --json call 3 -> hang

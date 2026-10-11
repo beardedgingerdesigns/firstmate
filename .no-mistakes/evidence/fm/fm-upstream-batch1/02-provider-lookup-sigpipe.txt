@@ -1,0 +1,29 @@
+# Scenario: harness->provider lookup with SIGPIPE ignored (as under agent harnesses / nohup)
+
+## base, shell:  version 3.2.57(1)-release (x86_64-apple-darwin24)
+claude -> claude
+codex -> codex
+muse -> meta
+unknown harness rc=1
+stderr: 1 sed: stdout: Broken pipe
+
+## base, shell:  version 5.3.20(1)-release (x86_64-apple-darwin24.6.0)
+claude -> claude
+codex -> codex
+muse -> meta
+unknown harness rc=1
+stderr: 1 sed: stdout: Broken pipe
+
+## target, shell:  version 3.2.57(1)-release (x86_64-apple-darwin24)
+claude -> claude
+codex -> codex
+muse -> meta
+unknown harness rc=1
+stderr: (empty)
+
+## target, shell:  version 5.3.20(1)-release (x86_64-apple-darwin24.6.0)
+claude -> claude
+codex -> codex
+muse -> meta
+unknown harness rc=1
+stderr: (empty)

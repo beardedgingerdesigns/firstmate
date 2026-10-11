@@ -1,0 +1,45 @@
+# Scenario: full quota watch in a disposable lab home (FM_HOME=<lab>), real quota-axi 0.1.53 behind the fault injector
+
+$ bin/fm-procevent-quota.sh arm --provider codex --threshold 90 --interval 5
+  registered: quota-codex (quota)
+  armed: quota-codex
+  provider: codex
+  threshold: 90%
+  interval: 5s
+  (exit 0)
+
+$ bin/fm-procevent.sh list
+  SOURCE                       ADAPTER      OWNER      PENDING
+  quota-codex                  quota        none       0
+
+$ bin/fm-procevent.sh start quota-codex     # the supervised runner; blocks until the watch fires
+  not-autohandled: quota-codex (left for the handler; still unacknowledged)
+  retired: quota-codex (adapter classified the captured result terminal)
+  captured: /private/tmp/fm-lab.leZgoq/state/procevent-inbox/quota-codex.1.result
+  (exit 0, 15s)
+
+quota-axi calls seen by the injector:
+  15:45:07 --json call 1 -> fail
+  15:45:12 --json call 2 -> fail
+  15:45:17 --json call 3 -> ok
+
+$ find <lab>/state -type f | sort
+  <lab>/state/.wake-queue
+  <lab>/state/.wake-queue.seq
+  <lab>/state/.watcher-down
+  <lab>/state/procevent-inbox/quota-codex.1.adapter
+  <lab>/state/procevent-inbox/quota-codex.1.result
+  <lab>/state/procevent/.owner-lease
+  <lab>/state/procevent/quota-codex.16777221-65092240.last-launch
+
+$ cat <lab>/state/procevent-inbox/quota-codex.1.result
+  quota: quota-codex
+  status: low
+  detail: {"provider":"codex","best":{"scope":"all_models","status":"known","effectivePercentRemaining":77,"boundedBy":["weekly"],"limitingWindowIds":["weekly"],"pace":{"status":"ahead","aheadWindowIds":["weekly"],"worstReservePercentPoints":-16.5544,"worstReser
+  condition_polls: 3
+
+$ bin/fm-procevent-quota.sh classify <lab>/state/procevent-inbox/quota-codex.1.result
+  low
+
+$ cat <lab>/state/.wake-queue     # the durable wake firstmate receives
+  1791751520	1	check	procevent:quota-codex:1	check: procevent quota quota-codex 1

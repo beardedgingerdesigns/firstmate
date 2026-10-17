@@ -414,6 +414,22 @@ test_pr_based_dod_requires_non_draft() {
   pass "fm-brief.sh: PR-based done requires a non-draft PR; a deliberate draft declares a wait"
 }
 
+# Rule 3 must name the task's own chrome-devtools-axi session so teardown's
+# browser backstop has a session to stop; scout and ship briefs both carry it.
+test_browser_rule_names_task_session() {
+  local home id flag brief
+  home="$TMP_ROOT/browser-session-home"
+  mkdir -p "$home/data"
+  for flag in --mode=no-mistakes --scout; do
+    id="brief-browser${flag#--}"
+    case $flag in --mode=*) FM_HOME="$home" "$ROOT/bin/fm-brief.sh" "$id" some-proj --mode "${flag#--mode=}" >/dev/null 2>&1 ;; *) FM_HOME="$home" "$ROOT/bin/fm-brief.sh" "$id" some-proj "$flag" >/dev/null 2>&1 ;; esac
+    brief="$home/data/$id/brief.md"
+    assert_grep "CHROME_DEVTOOLS_AXI_SESSION=$id chrome-devtools-axi stop" "$brief" \
+      "$flag: browser rule must tell the worker to stop its own session"
+  done
+  pass "fm-brief.sh: rule 3 names the task's chrome-devtools-axi session in scout and ship briefs"
+}
+
 # Pin the specific line the bug lived on: the no-mistakes DOD's no-mistakes
 # reference must render as plain prose with no dangling apostrophe artifact.
 test_no_mistakes_dod_wording() {
@@ -1401,6 +1417,7 @@ test_faster_paths_use_configured_authority_without_stacked_review
 test_no_mistakes_dod_wording
 test_no_mistakes_dod_green_detection
 test_pr_based_dod_requires_non_draft
+test_browser_rule_names_task_session
 test_ask_user_escalation_format
 test_ship_project_memory_wording
 test_herdr_lab_contract_is_explicit_and_complete

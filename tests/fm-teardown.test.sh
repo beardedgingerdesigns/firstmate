@@ -167,6 +167,15 @@ exit 0
 SH
   chmod +x "$fakebin/treehouse" "$fakebin/tmux" "$fakebin/gh-axi" "$fakebin/gh" "$fakebin/no-mistakes"
 
+  # Hermetic chrome-devtools-axi: records the session it was asked to stop.
+  cat > "$fakebin/chrome-devtools-axi" <<'SH'
+#!/usr/bin/env bash
+[ -z "${FM_FAKE_BROWSER_LOG:-}" ] || printf '%s|%s\n' "${CHROME_DEVTOOLS_AXI_SESSION:-}" "$*" >> "$FM_FAKE_BROWSER_LOG"
+[ "${FM_FAKE_BROWSER_FAIL:-0}" != 1 ] || exit 1
+if [ "${FM_FAKE_BROWSER_NOOP:-0}" = 1 ]; then printf 'status: stopped (no-op)\n'; else printf 'status: stopped\n'; fi
+SH
+  chmod +x "$fakebin/chrome-devtools-axi"
+
   # Bare origin so the clone has an `origin` remote and origin/HEAD.
   git init -q --bare "$case_dir/origin.git"
   git -C "$case_dir/origin.git" symbolic-ref HEAD refs/heads/main
@@ -4028,6 +4037,71 @@ EOF
   pass "a process exiting during identity lookup does not block teardown"
 }
 
+# Backstop: teardown stops only the task's own chrome-devtools-axi session,
+# never blocks on it, and does nothing when teardown refuses.
+test_browser_session_stopped_on_teardown() {
+  local case_dir rc
+  case_dir=$(make_case browser-stop)
+  write_meta "$case_dir" no-mistakes ship
+  land_shippable_commit "$case_dir"
+  rc=0
+  FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
+  expect_code 0 "$rc" "browser-stop: teardown should succeed"
+  assert_grep "task-x1|stop" "$case_dir/browser.log" "browser-stop: stop not called with the task's session"
+  assert_grep "stopped browser session task-x1" "$case_dir/stderr" "browser-stop: no stopped line"
+  pass "teardown stops the task's own browser session"
+}
+
+test_browser_stop_noop_is_not_reported() {
+  local case_dir rc
+  case_dir=$(make_case browser-stop-noop)
+  write_meta "$case_dir" no-mistakes ship
+  land_shippable_commit "$case_dir"
+  rc=0
+  FM_FAKE_BROWSER_NOOP=1 FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
+  expect_code 0 "$rc" "browser-stop-noop: teardown should succeed"
+  assert_grep "task-x1|stop" "$case_dir/browser.log" "browser-stop-noop: stop was not attempted"
+  assert_no_grep "stopped browser session" "$case_dir/stderr" "browser-stop-noop: a no-op stop was reported as a stopped browser"
+  pass "a no-op browser stop is not reported as stopping a browser"
+}
+
+test_browser_stop_failure_never_blocks_teardown() {
+  local case_dir rc
+  case_dir=$(make_case browser-stop-fail)
+  write_meta "$case_dir" no-mistakes ship
+  land_shippable_commit "$case_dir"
+  rc=0
+  FM_FAKE_BROWSER_FAIL=1 FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
+  expect_code 0 "$rc" "browser-stop-fail: a failing browser stop must not fail teardown"
+  assert_grep "task-x1|stop" "$case_dir/browser.log" "browser-stop-fail: stop was not attempted"
+  pass "a failing browser stop never fails teardown"
+}
+
+test_browser_stop_absent_tool_is_silent() {
+  local case_dir rc
+  case_dir=$(make_case browser-stop-absent)
+  write_meta "$case_dir" no-mistakes ship
+  land_shippable_commit "$case_dir"
+  rm -f "$case_dir/fakebin/chrome-devtools-axi"
+  rc=0
+  FM_TEARDOWN_TEST_PATH=/usr/bin:/bin run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
+  expect_code 0 "$rc" "browser-stop-absent: teardown should succeed without chrome-devtools-axi"
+  assert_no_grep "browser session" "$case_dir/stderr" "browser-stop-absent: unexpected browser output"
+  pass "teardown skips the browser stop silently when chrome-devtools-axi is absent"
+}
+
+test_refused_teardown_does_not_stop_browser() {
+  local case_dir rc
+  case_dir=$(make_case browser-stop-refused)
+  write_meta "$case_dir" no-mistakes ship
+  wt_commit_file "$case_dir" feature.txt hello "unpushed work"
+  rc=0
+  FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
+  expect_code 1 "$rc" "browser-stop-refused: teardown should refuse"
+  [ ! -e "$case_dir/browser.log" ] || fail "browser-stop-refused: a refused teardown stopped the browser"
+  pass "a refused teardown leaves the browser session alone"
+}
+
 test_run_abort_precedes_process_reap_precedes_worktree_removal() {
   local case_dir rc head pid abort_log
   case_dir=$(make_case abort-then-reap-then-remove-order)
@@ -4346,3 +4420,8 @@ test_process_spawned_during_grace_is_reaped_on_later_pass
 test_persistent_scan_refuses_after_bounded_retries
 test_process_exit_during_identity_lookup_does_not_refuse
 test_run_abort_precedes_process_reap_precedes_worktree_removal
+test_browser_session_stopped_on_teardown
+test_browser_stop_noop_is_not_reported
+test_browser_stop_failure_never_blocks_teardown
+test_browser_stop_absent_tool_is_silent
+test_refused_teardown_does_not_stop_browser

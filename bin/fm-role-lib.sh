@@ -221,40 +221,42 @@ fm_role_git_common_dir() {
   (CDPATH='' cd -- "$common" 2>/dev/null && pwd -P) || printf '%s\n' "$common"
 }
 
-# fm_role_push_usable <git-dir> <remote> - 0 unless the remote's push URL is
-# not a usable URL: no scheme, not scp-style host:path, and no existing local
-# path. A fork disables pushing to its parent that way (for example
-# `git remote set-url --push upstream no-push-to-upstream`), and such a remote
-# cannot be where this home publishes.
-fm_role_push_usable() {
-  local dir=$1 url
-  url=$(git -C "$dir" remote get-url --push "$2" 2>/dev/null) || return 0
-  case $url in
-  *://*) return 0 ;;
-  [!/]*:*) case ${url%%:*} in */*) ;; *) return 0 ;; esac ;;
-  esac
-  case $url in
-  /*) [ -e "$url" ] ;;
-  *) [ -e "$dir/$url" ] ;;
-  esac
-}
-
 # fm_role_publication_target <git-dir> - the repository a default publication
-# (gh pr/issue, a no-mistakes PR) would reach: the first of upstream, github,
-# origin that is configured with a usable push URL (fm_role_push_usable), in
-# the order gh prefers, normalized to host/owner/repo or path:<abs>. Empty when
-# the repo has no such remote.
+# (gh pr/issue, a no-mistakes PR) would reach, normalized to host/owner/repo or
+# path:<abs>. Like gh, a remote marked by `gh repo set-default`
+# (remote.<name>.gh-resolved) wins: `base` selects that remote's repository and
+# an owner/repo value selects that repository on the remote's host. Otherwise
+# the first of upstream, github, origin that is configured, in the order gh
+# prefers. Empty when the repo has no such remote or the marker is unusable.
 fm_role_publication_target() {
-  local dir=$1 remote url=
-  for remote in upstream github origin; do
-    if url=$(git -C "$dir" remote get-url "$remote" 2>/dev/null) && [ -n "$url" ] \
-      && fm_role_push_usable "$dir" "$remote"; then
-      break
-    fi
+  local dir=$1 remote key id url='' resolved=''
+  while read -r key resolved; do
+    remote=${key#remote.}
+    remote=${remote%.gh-resolved}
+    url=$(git -C "$dir" remote get-url "$remote" 2>/dev/null) && [ -n "$url" ] && break
     url=
-  done
+    resolved=
+  done <<EOF
+$(git -C "$dir" config --get-regexp '^remote\..*\.gh-resolved$' 2>/dev/null)
+EOF
+  if [ -z "$url" ]; then
+    for remote in upstream github origin; do
+      if url=$(git -C "$dir" remote get-url "$remote" 2>/dev/null) && [ -n "$url" ]; then
+        break
+      fi
+      url=
+    done
+  fi
   [ -n "$url" ] || return 0
-  fm_role_remote_identity "$url" "$dir"
+  id=$(fm_role_remote_identity "$url" "$dir")
+  case $resolved in
+  '' | base) printf '%s\n' "$id" ;;
+  */*/* | /* | */ | *[!A-Za-z0-9._/-]*) ;;
+  */*)
+    case $id in path:* | '') return 0 ;; esac
+    printf '%s/%s\n' "${id%%/*}" "$(printf '%s' "${resolved%.git}" | tr '[:upper:]' '[:lower:]')"
+    ;;
+  esac
 }
 
 # fm_role_shallow <dir> - 0 when <dir> is a shallow git repository.

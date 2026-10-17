@@ -276,29 +276,34 @@ test_check_fork_lineage_reaches_the_gate() {
   pass "fm-role.sh check: repository lineage, not remotes, identifies firstmate across forks"
 }
 
-# The usual fork layout keeps the parent as a fetch-only upstream whose push
-# URL is disabled; such a remote is skipped, so the fork's own origin is the
-# publication target and a maintainer scope for the fork authorizes.
-test_check_push_disabled_upstream_resolves_to_the_fork() {
+# gh publishes to the remote `gh repo set-default` marked (gh-resolved), ahead
+# of the upstream > github > origin order; with no marker the upstream stays
+# the publication target.
+test_check_gh_resolved_default_selects_the_target() {
   local root fork user_home fork_home out rc
-  root=$(make_lineage_root push-off-root https://github.com/kunchenguid/firstmate)
-  fork=$(clone_with_origin "$root" push-off-fork https://github.com/someone/firstmate)
+  root=$(make_lineage_root gh-default-root https://github.com/kunchenguid/firstmate)
+  fork=$(clone_with_origin "$root" gh-default-fork https://github.com/someone/firstmate)
   git -C "$fork" remote add upstream https://github.com/kunchenguid/firstmate
-  git -C "$fork" remote set-url --push upstream no-push-to-upstream
-  user_home=$(make_role_home push-off-user)
+  user_home=$(make_role_home gh-default-user)
+  out=$(check_as "$root" "$user_home" "$fork"); rc=$?
+  expect_code 1 "$rc" "a fork without a grant must be gated (got: $out)"
+  assert_contains "$out" "no publication authority for github.com/kunchenguid/firstmate" \
+    "with no gh default the upstream must stay the publication target"
+
+  git -C "$fork" config remote.origin.gh-resolved base
   out=$(check_as "$root" "$user_home" "$fork"); rc=$?
   expect_code 1 "$rc" "a fork without a grant must still be gated (got: $out)"
   assert_contains "$out" "no publication authority for github.com/someone/firstmate" \
-    "a push-disabled upstream must not be the publication target"
-  fork_home=$(make_role_home push-off-maint 'maintainer github.com/someone/firstmate')
+    "a fork remote marked base must be the publication target"
+  fork_home=$(make_role_home gh-default-maint 'maintainer github.com/someone/firstmate')
   out=$(check_as "$root" "$fork_home" "$fork"); rc=$?
   expect_code 0 "$rc" "the fork's maintainer scope must authorize its own fork (got: $out)"
 
-  git -C "$fork" remote set-url --push upstream https://github.com/kunchenguid/firstmate
-  out=$(check_as "$root" "$user_home" "$fork"); rc=$?
-  assert_contains "$out" "no publication authority for github.com/kunchenguid/firstmate" \
-    "a pushable upstream must stay the publication target"
-  pass "fm-role.sh check: a push-disabled upstream is skipped, so a fork resolves to itself"
+  git -C "$fork" config --unset remote.origin.gh-resolved
+  git -C "$fork" config remote.upstream.gh-resolved someone/firstmate
+  out=$(check_as "$root" "$fork_home" "$fork"); rc=$?
+  expect_code 0 "$rc" "an owner/repo gh default must select that repository (got: $out)"
+  pass "fm-role.sh check: the gh default remote selects the publication target"
 }
 
 # Lineage that cannot be determined refuses, and a firstmate-lineage project
@@ -705,7 +710,7 @@ test_check_maintainer_scope_authorizes
 test_check_wrong_scope_and_remote_presence_do_not_authorize
 test_check_equivalent_remote_spellings_are_one_repo
 test_check_fork_lineage_reaches_the_gate
-test_check_push_disabled_upstream_resolves_to_the_fork
+test_check_gh_resolved_default_selects_the_target
 test_check_undeterminable_lineage_and_target_refuse
 test_check_task_consent_authorizes_one_task
 test_secondmate_cannot_self_grant

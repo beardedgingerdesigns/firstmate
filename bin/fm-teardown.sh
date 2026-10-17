@@ -88,6 +88,9 @@
 # session-start sweep could still close, while a journal bound to any other pane
 # - or a version 1 attempt whose workspace is still present or unreadable - may
 # name a live quarantined space and is retained for that sweep.
+# Once the refusals have passed, teardown also stops the task's own
+# chrome-devtools-axi session (CHROME_DEVTOOLS_AXI_SESSION=<task id>), bounded and
+# best effort: a missing tool or a failed stop never blocks teardown.
 # data/<id>/ is deliberately left in place: a successor spawn reads brief.md
 # from it.
 # Worktree-slot ownership (teardown-slot-collision): a treehouse pool slot is
@@ -3554,6 +3557,16 @@ if [ "$KIND" != secondmate ] && teardown_owns_worktree; then
   reap_task_worktree_processes worktree "$WT" "$TASK_TMP"
 elif [ "$KIND" != secondmate ]; then
   reap_task_worktree_processes tasktmp "$TASK_TMP"
+fi
+
+# Best-effort backstop: stop this task's own chrome-devtools-axi session so a
+# forgotten hidden Chrome does not outlive the task. Only the session named for
+# the task id is touched, and no failure here blocks teardown.
+if [ "$KIND" != secondmate ] && command -v chrome-devtools-axi >/dev/null 2>&1; then
+  browser_stop_out=$(CHROME_DEVTOOLS_AXI_SESSION=$ID fm_run_timed 20 chrome-devtools-axi stop </dev/null 2>/dev/null) || browser_stop_out=
+  case $browser_stop_out in
+    *"status: stopped"*) echo "teardown: stopped browser session $ID" >&2 ;;
+  esac
 fi
 
 # Fix 3 (see script header): sweep remote job workers abandoned by an already

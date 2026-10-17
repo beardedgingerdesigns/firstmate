@@ -3565,7 +3565,7 @@ fi
 if [ "$KIND" != secondmate ] && command -v chrome-devtools-axi >/dev/null 2>&1; then
   browser_stop_out=$(CHROME_DEVTOOLS_AXI_SESSION=$ID fm_run_timed 20 chrome-devtools-axi stop </dev/null 2>/dev/null) || browser_stop_out=
   case $browser_stop_out in
-    *"status: stopped"*) echo "teardown: stopped browser session $ID" >&2 ;;
+    "status: stopped") echo "teardown: stopped browser session $ID" >&2 ;;
   esac
 fi
 

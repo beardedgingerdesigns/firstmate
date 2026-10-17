@@ -172,7 +172,7 @@ SH
 #!/usr/bin/env bash
 [ -z "${FM_FAKE_BROWSER_LOG:-}" ] || printf '%s|%s\n' "${CHROME_DEVTOOLS_AXI_SESSION:-}" "$*" >> "$FM_FAKE_BROWSER_LOG"
 [ "${FM_FAKE_BROWSER_FAIL:-0}" != 1 ] || exit 1
-printf 'status: stopped\n'
+if [ "${FM_FAKE_BROWSER_NOOP:-0}" = 1 ]; then printf 'status: stopped (no-op)\n'; else printf 'status: stopped\n'; fi
 SH
   chmod +x "$fakebin/chrome-devtools-axi"
 
@@ -4052,6 +4052,19 @@ test_browser_session_stopped_on_teardown() {
   pass "teardown stops the task's own browser session"
 }
 
+test_browser_stop_noop_is_not_reported() {
+  local case_dir rc
+  case_dir=$(make_case browser-stop-noop)
+  write_meta "$case_dir" no-mistakes ship
+  land_shippable_commit "$case_dir"
+  rc=0
+  FM_FAKE_BROWSER_NOOP=1 FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
+  expect_code 0 "$rc" "browser-stop-noop: teardown should succeed"
+  assert_grep "task-x1|stop" "$case_dir/browser.log" "browser-stop-noop: stop was not attempted"
+  assert_no_grep "stopped browser session" "$case_dir/stderr" "browser-stop-noop: a no-op stop was reported as a stopped browser"
+  pass "a no-op browser stop is not reported as stopping a browser"
+}
+
 test_browser_stop_failure_never_blocks_teardown() {
   local case_dir rc
   case_dir=$(make_case browser-stop-fail)
@@ -4408,6 +4421,7 @@ test_persistent_scan_refuses_after_bounded_retries
 test_process_exit_during_identity_lookup_does_not_refuse
 test_run_abort_precedes_process_reap_precedes_worktree_removal
 test_browser_session_stopped_on_teardown
+test_browser_stop_noop_is_not_reported
 test_browser_stop_failure_never_blocks_teardown
 test_browser_stop_absent_tool_is_silent
 test_refused_teardown_does_not_stop_browser

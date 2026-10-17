@@ -414,8 +414,6 @@ test_pr_based_dod_requires_non_draft() {
   pass "fm-brief.sh: PR-based done requires a non-draft PR; a deliberate draft declares a wait"
 }
 
-# Pin the specific line the bug lived on: the no-mistakes DOD's no-mistakes
-# reference must render as plain prose with no dangling apostrophe artifact.
 # Rule 3 must name the task's own chrome-devtools-axi session so teardown's
 # browser backstop has a session to stop; scout and ship briefs both carry it.
 test_browser_rule_names_task_session() {
@@ -432,6 +430,8 @@ test_browser_rule_names_task_session() {
   pass "fm-brief.sh: rule 3 names the task's chrome-devtools-axi session in scout and ship briefs"
 }
 
+# Pin the specific line the bug lived on: the no-mistakes DOD's no-mistakes
+# reference must render as plain prose with no dangling apostrophe artifact.
 test_no_mistakes_dod_wording() {
   local home id brief spelling
   home="$TMP_ROOT/wording-home"

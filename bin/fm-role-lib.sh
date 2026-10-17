@@ -221,14 +221,34 @@ fm_role_git_common_dir() {
   (CDPATH='' cd -- "$common" 2>/dev/null && pwd -P) || printf '%s\n' "$common"
 }
 
+# fm_role_push_usable <git-dir> <remote> - 0 unless the remote's push URL is
+# not a usable URL: no scheme, not scp-style host:path, and no existing local
+# path. A fork disables pushing to its parent that way (for example
+# `git remote set-url --push upstream no-push-to-upstream`), and such a remote
+# cannot be where this home publishes.
+fm_role_push_usable() {
+  local dir=$1 url
+  url=$(git -C "$dir" remote get-url --push "$2" 2>/dev/null) || return 0
+  case $url in
+  *://*) return 0 ;;
+  [!/]*:*) case ${url%%:*} in */*) ;; *) return 0 ;; esac ;;
+  esac
+  case $url in
+  /*) [ -e "$url" ] ;;
+  *) [ -e "$dir/$url" ] ;;
+  esac
+}
+
 # fm_role_publication_target <git-dir> - the repository a default publication
 # (gh pr/issue, a no-mistakes PR) would reach: the first of upstream, github,
-# origin that is configured, in the order gh prefers, normalized to
-# host/owner/repo or path:<abs>. Empty when the repo has no such remote.
+# origin that is configured with a usable push URL (fm_role_push_usable), in
+# the order gh prefers, normalized to host/owner/repo or path:<abs>. Empty when
+# the repo has no such remote.
 fm_role_publication_target() {
   local dir=$1 remote url=
   for remote in upstream github origin; do
-    if url=$(git -C "$dir" remote get-url "$remote" 2>/dev/null) && [ -n "$url" ]; then
+    if url=$(git -C "$dir" remote get-url "$remote" 2>/dev/null) && [ -n "$url" ] \
+      && fm_role_push_usable "$dir" "$remote"; then
       break
     fi
     url=

@@ -1,0 +1,48 @@
+
+===== S1: worker left a hidden Chrome open in session task-x1; a second unrelated session 'other-sess' is also open =====
+page:
+  title: task-x1
+  url: "data:text/html,<h1>task-x1</h1>"
+page:
+  title: other
+  url: "data:text/html,<h1>other</h1>"
+-- headless Chrome main processes before teardown:
+65349 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttlin
+65935 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttlin
+-- bridges:
+64663 node /Users/justinlobaito/.nvm/versions/node/v24.14.1/lib/node_modules/chrome-devtools-axi/dist/bin/chrome-devtools-axi-bridge.js
+65555 node /Users/justinlobaito/.nvm/versions/node/v24.14.1/lib/node_modules/chrome-devtools-axi/dist/bin/chrome-devtools-axi-bridge.js
+-- chrome-devtools-axi resolved by teardown: /Users/justinlobaito/.nvm/versions/node/v24.14.1/bin/chrome-devtools-axi
+-- teardown exit: 0
+-- teardown stderr (browser lines):
+teardown: stopped browser session task-x1
+-- headless Chrome main processes after teardown:
+65935 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttlin
+-- bridges after teardown (task-x1 bridge 1st, other-sess 2nd before):
+65555 node /Users/justinlobaito/.nvm/versions/node/v24.14.1/lib/node_modules/chrome-devtools-axi/dist/bin/chrome-devtools-axi-bridge.js
+-- other-sess still alive? pages:
+pages[2]{id,url,selected}:
+  1,about:blank,false
+  2,data:text/html,<h1>other</h1>,true
+help[2]:
+
+===== S2: teardown when task had no browser -> real tool reports no-op, teardown logs nothing =====
+-- direct real stop output for an idle session:
+status: stopped (no-op)
+-- teardown exit: 0
+-- teardown stderr (browser lines):
+(none)
+
+===== S3: refused teardown (unpushed work) leaves the task's live browser running =====
+page:
+  title: task-x1-again
+-- teardown exit: 1 (expected 1 = refused)
+REFUSED: worktree /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-teardown-tests.4VKqFX/live-browser-refused/wt has work not on any remote and not landed.
+-- Chrome main processes before/after refused teardown: 2/2
+-- bridges after refusal:
+       2
+
+===== cleanup: stop both test sessions =====
+status: stopped
+status: stopped
+-- leftover Chrome: 0 bridges: 0

@@ -1,0 +1,8 @@
+===== fm-brief.sh lab-ship-1 some-proj --mode no-mistakes =====
+rc=0
+28:3. Use gh-axi for GitHub operations and chrome-devtools-axi for browser operations.
+29-   Run every chrome-devtools-axi command with `CHROME_DEVTOOLS_AXI_SESSION=lab-ship-1`, and run `CHROME_DEVTOOLS_AXI_SESSION=lab-ship-1 chrome-devtools-axi stop` when your browser checks are done.
+===== fm-brief.sh lab-scout-1 some-proj --scout =====
+rc=0
+24:3. Use gh-axi for GitHub operations and chrome-devtools-axi for browser operations.
+25-   Run every chrome-devtools-axi command with `CHROME_DEVTOOLS_AXI_SESSION=lab-scout-1`, and run `CHROME_DEVTOOLS_AXI_SESSION=lab-scout-1 chrome-devtools-axi stop` when your browser checks are done.

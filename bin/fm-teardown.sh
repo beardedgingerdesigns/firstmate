@@ -109,9 +109,10 @@
 # session-start sweep could still close, while a journal bound to any other pane
 # - or a version 1 attempt whose workspace is still present or unreadable - may
 # name a live quarantined space and is retained for that sweep.
-# Once the refusals have passed, teardown also stops the task's own
-# chrome-devtools-axi session (CHROME_DEVTOOLS_AXI_SESSION=<task id>), bounded and
-# best effort: a missing tool or a failed stop never blocks teardown.
+# Once the refusals have passed, teardown of any non-secondmate task also stops
+# the task's own chrome-devtools-axi session (CHROME_DEVTOOLS_AXI_SESSION=<task
+# id>), bounded and best effort: a missing tool or a failed stop never blocks
+# teardown.
 # data/<id>/ is deliberately left in place: a successor spawn reads brief.md
 # from it.
 # Worktree-slot ownership (teardown-slot-collision): a treehouse pool slot is

@@ -1,0 +1,13 @@
+### before teardown
+session=browser-t1 bridge_pid=46292 bridge_alive=yes chrome_main_pids=[46362]
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### $ FM_HOME=<lab> bin/fm-teardown.sh browser-t1
+fm-gate-refuse: gate agent lifecycle permitted only against lab home <lab>
+teardown: stopped browser session browser-t1
+teardown browser-t1 complete (window firstmate:fm-browser-t1, worktree <lab>/wt)
+Backlog: browser-t1 just finished (this home keeps no markdown backlog at <lab>/data/backlog.md). Update <lab>/data/backlog.md - move browser-t1 to Done, keep Done to the 10 most recent, then re-scan Queued and dispatch only work whose blockers are gone and date is due.
+exit=0
+### after teardown
+session=browser-t1 bridge_pid=none bridge_alive=no chrome_main_pids=[]
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### meta present: no

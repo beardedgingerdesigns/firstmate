@@ -1,0 +1,15 @@
+### before teardown
+session=refuse-t4 bridge_pid=51891 bridge_alive=yes chrome_main_pids=[52313]
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### $ FM_HOME=<lab> bin/fm-teardown.sh refuse-t4
+fm-gate-refuse: gate agent lifecycle permitted only against lab home <lab>
+REFUSED: worktree <lab>/wt-refuse-t4 has uncommitted changes.
+uncommitted changes present (untracked-only leftovers)
+untracked paths (up to 10):
+  scratch.txt
+Commit them (or get the captain's explicit OK to discard, then --force).
+exit=1
+### after teardown
+session=refuse-t4 bridge_pid=51891 bridge_alive=yes chrome_main_pids=[52313]
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### meta present: yes

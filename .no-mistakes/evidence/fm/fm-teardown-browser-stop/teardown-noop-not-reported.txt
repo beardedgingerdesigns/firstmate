@@ -1,0 +1,15 @@
+### before teardown
+session=noop-t3 bridge_pid=none bridge_alive=no chrome_main_pids=[]
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### $ FM_HOME=<lab> bin/fm-teardown.sh noop-t3
+fm-gate-refuse: gate agent lifecycle permitted only against lab home <lab>
+teardown noop-t3 complete (window firstmate:fm-noop-t3, worktree <lab>/wt-noop-t3)
+Backlog: noop-t3 just finished (this home keeps no markdown backlog at <lab>/data/backlog.md). Update <lab>/data/backlog.md - move noop-t3 to Done, keep Done to the 10 most recent, then re-scan Queued and dispatch only work whose blockers are gone and date is due.
+exit=0
+### after teardown
+session=noop-t3 bridge_pid=none bridge_alive=no chrome_main_pids=[]
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### meta present: no
+### real tool output for a session with no live browser (what teardown compares against)
+$ CHROME_DEVTOOLS_AXI_SESSION=noop-t3 chrome-devtools-axi stop
+status: stopped (no-op)

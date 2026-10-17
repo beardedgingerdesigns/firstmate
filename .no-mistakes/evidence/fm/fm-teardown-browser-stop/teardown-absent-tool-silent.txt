@@ -1,0 +1,10 @@
+### before teardown
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### $ FM_HOME=<lab> bin/fm-teardown.sh absent-t5
+fm-gate-refuse: gate agent lifecycle permitted only against lab home <lab>
+teardown absent-t5 complete (window firstmate:fm-absent-t5, worktree <lab>/wt-absent-t5)
+Backlog: absent-t5 just finished (this home keeps no markdown backlog at <lab>/data/backlog.md). Update <lab>/data/backlog.md - move absent-t5 to Done, keep Done to the 10 most recent, then re-scan Queued and dispatch only work whose blockers are gone and date is due.
+exit=0
+### after teardown
+session=bystander-t2 bridge_pid=38778 bridge_alive=yes chrome_main_pids=[38848]
+### meta present: no

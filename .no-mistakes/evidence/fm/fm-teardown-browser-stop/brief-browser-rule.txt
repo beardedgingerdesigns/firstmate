@@ -1,0 +1,10 @@
+### $ FM_HOME=<lab> bin/fm-brief.sh brief-ship-t6 proj --mode no-mistakes
+scaffolded: <lab>/data/brief-ship-t6/brief.md (ship, mode=no-mistakes; replace {TASK} and {FIRSTMATE_SPEC})
+--- rule 3 in rendered data/brief-ship-t6/brief.md:
+30:3. Use gh-axi for GitHub operations and chrome-devtools-axi for browser operations.
+31-   Run every chrome-devtools-axi command with `CHROME_DEVTOOLS_AXI_SESSION=brief-ship-t6`, and run `CHROME_DEVTOOLS_AXI_SESSION=brief-ship-t6 chrome-devtools-axi stop` when your browser checks are done.
+### $ FM_HOME=<lab> bin/fm-brief.sh brief-scout-t7 proj --scout
+scaffolded: <lab>/data/brief-scout-t7/brief.md (scout; replace {TASK} and {FIRSTMATE_SPEC})
+--- rule 3 in rendered data/brief-scout-t7/brief.md:
+24:3. Use gh-axi for GitHub operations and chrome-devtools-axi for browser operations.
+25-   Run every chrome-devtools-axi command with `CHROME_DEVTOOLS_AXI_SESSION=brief-scout-t7`, and run `CHROME_DEVTOOLS_AXI_SESSION=brief-scout-t7 chrome-devtools-axi stop` when your browser checks are done.

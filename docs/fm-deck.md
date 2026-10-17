@@ -7,7 +7,7 @@ This page is for operators who turn it on and need to know what it shows, what e
 ## Enabling it
 
 fm-deck lives in `.claude/mods/fm-deck`.
-The trusted project auto-loads it through `.claude/skills/fm-deck`, a symlink into `.claude/mods`, the same way [`firstmate-calm`](calm.md#the-firstmate-calm-mod) loads.
+The trusted project auto-loads it through `.claude/skills/fm-deck`, a symlink into `.claude/mods`, the same way [`firstmate-calm`](calm.md#the-calm-mod) loads.
 
 Claude Code's function-hooks surface is early access and off by default.
 fm-deck does nothing unless `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS` equals `1`, even if Claude Code's rollout flag loads the module.

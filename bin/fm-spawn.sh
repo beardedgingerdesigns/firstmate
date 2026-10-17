@@ -3950,7 +3950,7 @@ freshen_spawn_worktree_base() { # <worktree> [<base-branch>]
   fi
   if ! spawn_worktree_has_origin_config "$worktree"; then
     [ -z "$base" ] || {
-      echo "error: pooled worktree '$worktree' has no origin, so it cannot start from base branch '$base'" >&2
+      echo "error: pooled worktree '$worktree' has no origin, so it cannot start from base branch 'origin/$base'" >&2
       return 1
     }
     return 0

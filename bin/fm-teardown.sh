@@ -3667,9 +3667,10 @@ fi
 
 # Best-effort backstop: close this task's own playwright-cli session so a
 # forgotten hidden Chrome does not outlive the task. Only the session named for
-# the task id is touched, and no failure here blocks teardown.
+# the task id is touched, and no failure here blocks teardown. The close runs
+# from the worktree because playwright-cli keys sessions by the cwd's workspace.
 if [ "$KIND" != secondmate ] && command -v playwright-cli >/dev/null 2>&1; then
-  browser_stop_out=$(PLAYWRIGHT_CLI_SESSION=$ID fm_run_timed 20 playwright-cli close </dev/null 2>/dev/null) || browser_stop_out=
+  browser_stop_out=$(cd "$WT" 2>/dev/null || :; PLAYWRIGHT_CLI_SESSION=$ID fm_run_timed 20 playwright-cli close </dev/null 2>/dev/null) || browser_stop_out=
   case $browser_stop_out in
     "Browser '$ID' closed") echo "teardown: stopped browser session $ID" >&2 ;;
   esac

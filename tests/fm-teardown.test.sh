@@ -185,7 +185,7 @@ SH
   # Hermetic playwright-cli: records the session it was asked to close.
   cat > "$fakebin/playwright-cli" <<'SH'
 #!/usr/bin/env bash
-[ -z "${FM_FAKE_BROWSER_LOG:-}" ] || printf '%s|%s\n' "${PLAYWRIGHT_CLI_SESSION:-}" "$*" >> "$FM_FAKE_BROWSER_LOG"
+[ -z "${FM_FAKE_BROWSER_LOG:-}" ] || printf '%s|%s|%s\n' "${PLAYWRIGHT_CLI_SESSION:-}" "$*" "$(pwd -P)" >> "$FM_FAKE_BROWSER_LOG"
 [ "${FM_FAKE_BROWSER_FAIL:-0}" != 1 ] || exit 1
 if [ "${FM_FAKE_BROWSER_NOOP:-0}" = 1 ]; then printf "Browser '%s' is not open.\n" "$PLAYWRIGHT_CLI_SESSION"; else printf "Browser '%s' closed\n\n" "$PLAYWRIGHT_CLI_SESSION"; fi
 SH
@@ -4932,7 +4932,7 @@ test_browser_session_stopped_on_teardown() {
   rc=0
   FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
   expect_code 0 "$rc" "browser-stop: teardown should succeed"
-  assert_grep "task-x1|close" "$case_dir/browser.log" "browser-stop: stop not called with the task's session"
+  assert_grep "task-x1|close|$(cd "$case_dir/wt" && pwd -P)" "$case_dir/browser.log" "browser-stop: stop not called with the task's session from its worktree"
   assert_grep "stopped browser session task-x1" "$case_dir/stderr" "browser-stop: no stopped line"
   pass "teardown stops the task's own browser session"
 }

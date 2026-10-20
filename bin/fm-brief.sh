@@ -694,7 +694,7 @@ The report is the only thing that survives, so anything worth keeping must be in
 
 # Rules
 1. Never push to any remote and never open a PR.
-2. Stay inside this worktree; the only files you may write outside it are the report, the browser output named in rule 3, and the status file below.
+2. Stay inside this worktree; the only files you may write outside it are the report, browser output under \`$DATA/$ID/playwright/\`, and the status file below.
 3. Use gh-axi for GitHub operations and playwright-cli for browser operations.
    Run every playwright-cli command with \`PLAYWRIGHT_CLI_SESSION=$ID PLAYWRIGHT_MCP_OUTPUT_DIR=$DATA/$ID/playwright\` so its snapshots stay out of the worktree, and run \`PLAYWRIGHT_CLI_SESSION=$ID playwright-cli close\` when your browser checks are done.
 4. Report status by appending one line:

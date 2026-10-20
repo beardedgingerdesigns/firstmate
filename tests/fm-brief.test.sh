@@ -236,7 +236,7 @@ test_forge_selection_renders_correct_cli() {
   FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-forge-default some-proj --mode direct-PR >/dev/null 2>&1 \
     || fail "a ship brief with no --forge should still scaffold"
   brief="$home/data/brief-forge-default/brief.md"
-  assert_grep "3. Use gh-axi for GitHub operations and chrome-devtools-axi for browser operations." "$brief" \
+  assert_grep "3. Use gh-axi for GitHub operations and playwright-cli for browser operations." "$brief" \
     "a brief with no --forge must render the exact pre-existing gh-axi Rule 3 line"
   # shellcheck disable=SC2016 # Backticks are literal generated brief text.
   assert_grep 'open a PR with `gh-axi`' "$brief" \
@@ -247,7 +247,7 @@ test_forge_selection_renders_correct_cli() {
   FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-forge-forgejo some-proj --mode direct-PR --forge forgejo >/dev/null 2>&1 \
     || fail "--forge forgejo should scaffold a direct-PR ship brief"
   brief="$home/data/brief-forge-forgejo/brief.md"
-  assert_grep "3. Use tea for Forgejo operations and chrome-devtools-axi for browser operations." "$brief" \
+  assert_grep "3. Use tea for Forgejo operations and playwright-cli for browser operations." "$brief" \
     "--forge forgejo must render the tea Rule 3 line"
   # shellcheck disable=SC2016 # Backticks are literal generated brief text.
   assert_grep 'open a PR with `tea`' "$brief" \
@@ -268,7 +268,7 @@ test_forge_selection_renders_correct_cli() {
   FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-forge-nm some-proj --mode no-mistakes --forge forgejo >/dev/null 2>&1 \
     || fail "--forge forgejo should scaffold a no-mistakes ship brief"
   brief="$home/data/brief-forge-nm/brief.md"
-  assert_grep "3. Use tea for Forgejo operations and chrome-devtools-axi for browser operations." "$brief" \
+  assert_grep "3. Use tea for Forgejo operations and playwright-cli for browser operations." "$brief" \
     "a no-mistakes --forge forgejo brief must render the tea Rule 3 line"
   grep -qx "Delivery contract: mode=no-mistakes forge=forgejo" "$brief" \
     || fail "a no-mistakes --forge forgejo brief must mark the delivery contract line"
@@ -547,8 +547,9 @@ test_pr_based_dod_requires_non_draft() {
   pass "fm-brief.sh: PR-based done requires a non-draft PR; a deliberate draft declares a wait"
 }
 
-# Rule 3 must name the task's own chrome-devtools-axi session so teardown's
-# browser backstop has a session to stop; scout and ship briefs both carry it.
+# Rule 3 must name the task's own playwright-cli session so teardown's
+# browser backstop has a session to close, and must route its snapshots out of
+# the worktree; scout and ship briefs both carry it.
 test_browser_rule_names_task_session() {
   local home id flag brief
   home="$TMP_ROOT/browser-session-home"
@@ -557,10 +558,12 @@ test_browser_rule_names_task_session() {
     id="brief-browser${flag#--}"
     case $flag in --mode=*) FM_HOME="$home" "$ROOT/bin/fm-brief.sh" "$id" some-proj --mode "${flag#--mode=}" >/dev/null 2>&1 ;; *) FM_HOME="$home" "$ROOT/bin/fm-brief.sh" "$id" some-proj "$flag" >/dev/null 2>&1 ;; esac
     brief="$home/data/$id/brief.md"
-    assert_grep "CHROME_DEVTOOLS_AXI_SESSION=$id chrome-devtools-axi stop" "$brief" \
-      "$flag: browser rule must tell the worker to stop its own session"
+    assert_grep "PLAYWRIGHT_CLI_SESSION=$id playwright-cli close" "$brief" \
+      "$flag: browser rule must tell the worker to close its own session"
+    assert_grep "PLAYWRIGHT_CLI_SESSION=$id PLAYWRIGHT_MCP_OUTPUT_DIR=$home/data/$id/playwright" "$brief" \
+      "$flag: browser rule must send snapshots to the task data directory"
   done
-  pass "fm-brief.sh: rule 3 names the task's chrome-devtools-axi session in scout and ship briefs"
+  pass "fm-brief.sh: rule 3 names the task's playwright-cli session and output directory in scout and ship briefs"
 }
 
 # Pin the specific line the bug lived on: the no-mistakes DOD's no-mistakes

@@ -265,8 +265,10 @@ fleet[] {name,kind crewmate|secondmate,task_id,project,model,state
 working|parked|done|blocked|paused|failed|unknown,since (time of the last
 status event)} bounded like active_children, answers_inbox (the absolute drop
 folder, or null when unavailable), answers_seen (bin/fm-procevent-answer-drop.sh
-summary), and sites[] {project,staging_url,production_url,staging_sha (the
-commit staging runs),waiting (changes not yet in production),last_deploy
+summary, each entry {file,hold_id,status,reason,at,fingerprint}, fingerprint
+being the answer file's question_fingerprint or null), and sites[]
+{project,staging_url,production_url,staging_sha (the commit staging runs),
+waiting (changes not yet in production),last_deploy
 {env,result,at}}, one row per data/sites record,
 sorted by project (bin/fm-release.sh owns the record and its fields; records that
 do not parse are left out). A captain hold is actionable only when every blocker is Done, any

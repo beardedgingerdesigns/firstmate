@@ -182,14 +182,14 @@ exit 0
 SH
   chmod +x "$fakebin/treehouse" "$fakebin/tmux" "$fakebin/gh-axi" "$fakebin/gh" "$fakebin/no-mistakes"
 
-  # Hermetic chrome-devtools-axi: records the session it was asked to stop.
-  cat > "$fakebin/chrome-devtools-axi" <<'SH'
+  # Hermetic playwright-cli: records the session it was asked to close.
+  cat > "$fakebin/playwright-cli" <<'SH'
 #!/usr/bin/env bash
-[ -z "${FM_FAKE_BROWSER_LOG:-}" ] || printf '%s|%s\n' "${CHROME_DEVTOOLS_AXI_SESSION:-}" "$*" >> "$FM_FAKE_BROWSER_LOG"
+[ -z "${FM_FAKE_BROWSER_LOG:-}" ] || printf '%s|%s|%s\n' "${PLAYWRIGHT_CLI_SESSION:-}" "$*" "$(pwd -P)" >> "$FM_FAKE_BROWSER_LOG"
 [ "${FM_FAKE_BROWSER_FAIL:-0}" != 1 ] || exit 1
-if [ "${FM_FAKE_BROWSER_NOOP:-0}" = 1 ]; then printf 'status: stopped (no-op)\n'; else printf 'status: stopped\n'; fi
+if [ "${FM_FAKE_BROWSER_NOOP:-0}" = 1 ]; then printf "Browser '%s' is not open.\n" "$PLAYWRIGHT_CLI_SESSION"; else printf "Browser '%s' closed\n\n" "$PLAYWRIGHT_CLI_SESSION"; fi
 SH
-  chmod +x "$fakebin/chrome-devtools-axi"
+  chmod +x "$fakebin/playwright-cli"
 
   # Bare origin so the clone has an `origin` remote and origin/HEAD.
   git init -q --bare "$case_dir/origin.git"
@@ -4922,7 +4922,7 @@ EOF
   pass "a process exiting during identity lookup does not block teardown"
 }
 
-# Backstop: teardown stops only the task's own chrome-devtools-axi session,
+# Backstop: teardown closes only the task's own playwright-cli session,
 # never blocks on it, and does nothing when teardown refuses.
 test_browser_session_stopped_on_teardown() {
   local case_dir rc
@@ -4932,7 +4932,7 @@ test_browser_session_stopped_on_teardown() {
   rc=0
   FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
   expect_code 0 "$rc" "browser-stop: teardown should succeed"
-  assert_grep "task-x1|stop" "$case_dir/browser.log" "browser-stop: stop not called with the task's session"
+  assert_grep "task-x1|close|$(cd "$case_dir/wt" && pwd -P)" "$case_dir/browser.log" "browser-stop: stop not called with the task's session from its worktree"
   assert_grep "stopped browser session task-x1" "$case_dir/stderr" "browser-stop: no stopped line"
   pass "teardown stops the task's own browser session"
 }
@@ -4945,7 +4945,7 @@ test_browser_stop_noop_is_not_reported() {
   rc=0
   FM_FAKE_BROWSER_NOOP=1 FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
   expect_code 0 "$rc" "browser-stop-noop: teardown should succeed"
-  assert_grep "task-x1|stop" "$case_dir/browser.log" "browser-stop-noop: stop was not attempted"
+  assert_grep "task-x1|close" "$case_dir/browser.log" "browser-stop-noop: stop was not attempted"
   assert_no_grep "stopped browser session" "$case_dir/stderr" "browser-stop-noop: a no-op stop was reported as a stopped browser"
   pass "a no-op browser stop is not reported as stopping a browser"
 }
@@ -4958,7 +4958,7 @@ test_browser_stop_failure_never_blocks_teardown() {
   rc=0
   FM_FAKE_BROWSER_FAIL=1 FM_FAKE_BROWSER_LOG="$case_dir/browser.log" run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
   expect_code 0 "$rc" "browser-stop-fail: a failing browser stop must not fail teardown"
-  assert_grep "task-x1|stop" "$case_dir/browser.log" "browser-stop-fail: stop was not attempted"
+  assert_grep "task-x1|close" "$case_dir/browser.log" "browser-stop-fail: stop was not attempted"
   pass "a failing browser stop never fails teardown"
 }
 
@@ -4967,12 +4967,12 @@ test_browser_stop_absent_tool_is_silent() {
   case_dir=$(make_case browser-stop-absent)
   write_meta "$case_dir" no-mistakes ship
   land_shippable_commit "$case_dir"
-  rm -f "$case_dir/fakebin/chrome-devtools-axi"
+  rm -f "$case_dir/fakebin/playwright-cli"
   rc=0
   FM_TEARDOWN_TEST_PATH=/usr/bin:/bin run_teardown "$case_dir" > "$case_dir/stdout" 2> "$case_dir/stderr" || rc=$?
-  expect_code 0 "$rc" "browser-stop-absent: teardown should succeed without chrome-devtools-axi"
+  expect_code 0 "$rc" "browser-stop-absent: teardown should succeed without playwright-cli"
   assert_no_grep "browser session" "$case_dir/stderr" "browser-stop-absent: unexpected browser output"
-  pass "teardown skips the browser stop silently when chrome-devtools-axi is absent"
+  pass "teardown skips the browser stop silently when playwright-cli is absent"
 }
 
 test_refused_teardown_does_not_stop_browser() {

@@ -1,0 +1,107 @@
+== 1. ask mr-gym-launch (question v1) ==
+--- state/home-summary.json (v1 asked, nothing answered) ---
+{
+  "decisions_open": [
+    {
+      "id": "mr-gym-launch",
+      "question": "Launch the gym site Friday?",
+      "question_fingerprint": "8a8e923c21dd32cd6aa7446be57f41e19233e466c7b1486386d744a55e42f2b0"
+    }
+  ],
+  "answers_seen": []
+}
+== 2. aios-ui drops answer for v1 ==
+--- state/home-summary.json (v1 answered) ---
+{
+  "decisions_open": [],
+  "answers_seen": [
+    {
+      "file": "mr-gym-launch-1.json",
+      "hold_id": "mr-gym-launch",
+      "status": "resolved",
+      "reason": null,
+      "at": "2026-10-20T10:27:17Z",
+      "fingerprint": "8a8e923c21dd32cd6aa7446be57f41e19233e466c7b1486386d744a55e42f2b0"
+    }
+  ]
+}
+== 3. re-ask mr-gym-launch under same id (question v2) ==
+fm-captain-hold: task mr-gym-launch is already closed; a new captain call needs its own task
+(re-hold rc=1)
+--- state/home-summary.json (v2 re-asked; old answer still listed) ---
+{
+  "decisions_open": [],
+  "answers_seen": [
+    {
+      "file": "mr-gym-launch-1.json",
+      "hold_id": "mr-gym-launch",
+      "status": "resolved",
+      "reason": null,
+      "at": "2026-10-20T10:27:17Z",
+      "fingerprint": "8a8e923c21dd32cd6aa7446be57f41e19233e466c7b1486386d744a55e42f2b0"
+    }
+  ]
+}
+== 4. adversarial: aios-ui re-sends the stale v1 answer under SAME filename ==
+--- state/home-summary.json (stale resend) ---
+{
+  "decisions_open": [],
+  "answers_seen": [
+    {
+      "file": "mr-gym-launch-1.json",
+      "hold_id": "mr-gym-launch",
+      "status": "resolved",
+      "reason": null,
+      "at": "2026-10-20T10:27:17Z",
+      "fingerprint": "8a8e923c21dd32cd6aa7446be57f41e19233e466c7b1486386d744a55e42f2b0"
+    }
+  ]
+}
+== 5. aios-ui answers v2 under SAME filename ==
+--- state/home-summary.json (v2 answered) ---
+{
+  "decisions_open": [],
+  "answers_seen": [
+    {
+      "file": "mr-gym-launch-1.json",
+      "hold_id": "mr-gym-launch",
+      "status": "resolved",
+      "reason": null,
+      "at": "2026-10-20T10:27:17Z",
+      "fingerprint": "515fa840c56a5ac4e3b87e496c65a06e5eef8c4930b933f21d3976d3baad4e48"
+    }
+  ]
+}
+== 6. adversarial: malformed file, and archived file deleted ==
+--- state/home-summary.json (malformed) ---
+{
+  "decisions_open": [],
+  "answers_seen": [
+    {
+      "file": "junk-9.json",
+      "hold_id": "junk",
+      "status": "rejected",
+      "reason": "malformed",
+      "at": "2026-10-20T10:27:28Z",
+      "fingerprint": null
+    },
+    {
+      "file": "mr-gym-launch-1.json",
+      "hold_id": "mr-gym-launch",
+      "status": "resolved",
+      "reason": null,
+      "at": "2026-10-20T10:27:17Z",
+      "fingerprint": "515fa840c56a5ac4e3b87e496c65a06e5eef8c4930b933f21d3976d3baad4e48"
+    }
+  ]
+}
+archive contents:
+state/answer-drop/handled/mr-gym-launch-1.json
+state/answer-drop/handled/mr-gym-launch-1.json.1792492042
+state/answer-drop/handled/mr-gym-launch-1.json.1792492046
+state/answer-drop/rejected/junk-9.json
+expected sha(Q1)=8a8e923c21dd32cd6aa7446be57f41e19233e466c7b1486386d744a55e42f2b0
+expected sha(Q2)=515fa840c56a5ac4e3b87e496c65a06e5eef8c4930b933f21d3976d3baad4e48
+{"file":"junk-9.json","fingerprint":null}
+{"file":"mr-gym-launch-1.json","fingerprint":null}
+lab removed: yes

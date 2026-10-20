@@ -1,0 +1,28 @@
+== 1. ask mr-gym-launch (question v1) ==
+expected fp(Q1)=58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00
+expected fp(Q2)=95f72fc41da1fb7ffcb040caa50b6f324e894dd02cd3308323bc3421415ef445
+== A. hold isf-db-load-fixes with Q1; captain answers via aios-ui ==
+--- state/home-summary.json (Q1 answered, work released) ---
+{"decisions_open":[]}
+{"file":"isf-db-load-fixes-1.json","hold_id":"isf-db-load-fixes","status":"resolved","reason":null,"fingerprint":"58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00"}
+== B. re-ask under the SAME id with Q2 ==
+re-held rc=0
+--- state/home-summary.json (Q2 open; old answer row must carry fp(Q1) != open fp(Q2)) ---
+{"decisions_open":[{"id":"isf-db-load-fixes","question_fingerprint":"95f72fc41da1fb7ffcb040caa50b6f324e894dd02cd3308323bc3421415ef445"}]}
+{"file":"isf-db-load-fixes-1.json","hold_id":"isf-db-load-fixes","status":"resolved","reason":null,"fingerprint":"58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00"}
+== C. adversarial: stale Q1 answer arrives after re-ask ==
+--- state/home-summary.json (stale answer rejected, carries fp(Q1)) ---
+{"decisions_open":[{"id":"isf-db-load-fixes","question_fingerprint":"95f72fc41da1fb7ffcb040caa50b6f324e894dd02cd3308323bc3421415ef445"}]}
+{"file":"isf-db-load-fixes-2.json","hold_id":"isf-db-load-fixes","status":"rejected","reason":"question-changed","fingerprint":"58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00"}
+{"file":"isf-db-load-fixes-1.json","hold_id":"isf-db-load-fixes","status":"resolved","reason":null,"fingerprint":"58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00"}
+== D. captain answers Q2 ==
+--- state/home-summary.json (Q2 answered) ---
+{"decisions_open":[]}
+{"file":"isf-db-load-fixes-3.json","hold_id":"isf-db-load-fixes","status":"resolved","reason":null,"fingerprint":"95f72fc41da1fb7ffcb040caa50b6f324e894dd02cd3308323bc3421415ef445"}
+{"file":"isf-db-load-fixes-2.json","hold_id":"isf-db-load-fixes","status":"rejected","reason":"question-changed","fingerprint":"58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00"}
+{"file":"isf-db-load-fixes-1.json","hold_id":"isf-db-load-fixes","status":"resolved","reason":null,"fingerprint":"58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00"}
+== E. missing archived file -> null ==
+{"file":"isf-db-load-fixes-3.json","fingerprint":"95f72fc41da1fb7ffcb040caa50b6f324e894dd02cd3308323bc3421415ef445"}
+{"file":"isf-db-load-fixes-2.json","fingerprint":"58deafce070eeee95c9d665b85a45a07cd13574362db8005eefa160b96ea5e00"}
+{"file":"isf-db-load-fixes-1.json","fingerprint":null}
+lab removed: yes

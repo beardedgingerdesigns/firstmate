@@ -1,0 +1,20 @@
+== worker opens browser from worktree (as brief instructs)
+### Browser `task-x1` opened with pid 39468.
+### Ran Playwright code
+== list from worktree before teardown
+### Browsers
+- task-x1:
+  - status: open
+  - browser-type: chrome
+  - user-data-dir: <in-memory>
+  - headed: false
+== teardown rc=0
+== teardown stderr (browser lines)
+teardown: reaping leaked worktree process(es) for task-x1: 39468 39489 39506 39620 39626 39686 40007 40027 40028
+== close output
+cat: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-teardown-tests.yV8AHp/browser-live/close.out: No such file or directory
+== shim log (session|args|cwd)
+task-x1|close|/private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-teardown-tests.yV8AHp/browser-live/wt
+== worktree path: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-teardown-tests.yV8AHp/browser-live/wt (exists after teardown? yes)
+== list after teardown
+  (no browsers)

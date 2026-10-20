@@ -1,0 +1,7 @@
+## backstop command form, run from worktree: (cd "$WT"; PLAYWRIGHT_CLI_SESSION=$ID fm_run_timed 20 playwright-cli close)
+captured: [Browser 'fmtest1' closed]
+MATCHES teardown pattern -> 'teardown: stopped browser session fmtest1'
+## second close (no-op)
+captured: [Browser 'fmtest1' is not open.]
+## list
+  (no browsers)

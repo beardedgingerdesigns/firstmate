@@ -1,0 +1,36 @@
+## open (cwd=worktree with .playwright)
+### Browser `fmtest1` opened with pid 20645.
+### Error
+Error: Access to "file:" protocol is blocked. Attempted URL: "file:///tmp/pwlive.3Vq8/wt/index.html"
+## snapshot
+### Page
+- Page URL: about:blank
+### Snapshot
+```yaml
+
+```
+## screenshot
+### Result
+- [Screenshot of viewport](../../../../tmp/pwlive.3Vq8/data/fmtest1/playwright/page-2026-10-20T11-57-13-701Z.png)
+### Ran Playwright code
+```js
+// Screenshot viewport and save it as ../../../../tmp/pwlive.3Vq8/data/fmtest1/playwright/page-2026-10-20T11-57-13-701Z.png
+await page.screenshot({
+  path: '../../../../tmp/pwlive.3Vq8/data/fmtest1/playwright/page-2026-10-20T11-57-13-701Z.png',
+  scale: 'css',
+  type: 'png'
+});
+## worktree contents (expect only .playwright, index.html)
+.playwright
+index.html
+## output dir
+page-2026-10-20T11-57-13-701Z.png
+## close from foreign cwd (/tmp)
+Browser 'fmtest1' is not open.
+## list
+### Browsers
+- fmtest1:
+  - status: open
+  - browser-type: chrome
+  - user-data-dir: <in-memory>
+  - headed: false

@@ -1,0 +1,6 @@
+## $ fm-bootstrap.sh  (lab home, playwright-cli removed from PATH)
+MISSING: tmux (install: brew install tmux  # or the platform's package manager)
+MISSING: playwright-cli (install: npm install -g @playwright/cli)
+
+## $ fm-bootstrap.sh  (lab home, playwright-cli on PATH: /Users/justinlobaito/.nvm/versions/node/v24.14.1/bin/playwright-cli)
+MISSING: tmux (install: brew install tmux  # or the platform's package manager)

@@ -1,0 +1,28 @@
+===== pw-scout1: /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-scout1/brief.md
+# Rules
+1. Never push to any remote and never open a PR.
+2. Stay inside this worktree; the only files you may write outside it are the report, browser output under `/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-scout1/playwright/`, and the status file below.
+3. Use gh-axi for GitHub operations and playwright-cli for browser operations.
+   Run every playwright-cli command with `PLAYWRIGHT_CLI_SESSION=pw-scout1 PLAYWRIGHT_MCP_OUTPUT_DIR=/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-scout1/playwright` so its snapshots stay out of the worktree, and run `PLAYWRIGHT_CLI_SESSION=pw-scout1 playwright-cli close` when your browser checks are done.
+4. Report status by appending one line:
+chrome-devtools mentions: 0
+===== pw-ship1: /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-ship1/brief.md
+# Rules
+1. Never push to the default branch. Never merge a PR.
+2. Keep project edits inside this worktree; keep proof and scratch output outside it, under `/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-ship1/` or a temporary directory.
+   Outside the worktree, write only that task material and the status and steering-inbox records authorized below.
+   Leave the worktree clean before reporting done.
+3. Use gh-axi for GitHub operations and playwright-cli for browser operations.
+   Run every playwright-cli command with `PLAYWRIGHT_CLI_SESSION=pw-ship1 PLAYWRIGHT_MCP_OUTPUT_DIR=/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-ship1/playwright` so its snapshots stay out of the worktree, and run `PLAYWRIGHT_CLI_SESSION=pw-ship1 playwright-cli close` when your browser checks are done.
+4. Report status by appending one line:
+chrome-devtools mentions: 0
+===== pw-fj1: /var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-fj1/brief.md
+# Rules
+1. Never push to the default branch (push only your `fm/pw-fj1` branch). Never merge a PR.
+2. Keep project edits inside this worktree; keep proof and scratch output outside it, under `/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-fj1/` or a temporary directory.
+   Outside the worktree, write only that task material and the status and steering-inbox records authorized below.
+   Leave the worktree clean before reporting done.
+3. Use tea for Forgejo operations and playwright-cli for browser operations.
+   Run every playwright-cli command with `PLAYWRIGHT_CLI_SESSION=pw-fj1 PLAYWRIGHT_MCP_OUTPUT_DIR=/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T//fm-lab.CHXUPK/data/pw-fj1/playwright` so its snapshots stay out of the worktree, and run `PLAYWRIGHT_CLI_SESSION=pw-fj1 playwright-cli close` when your browser checks are done.
+4. Report status by appending one line:
+chrome-devtools mentions: 0

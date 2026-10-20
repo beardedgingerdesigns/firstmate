@@ -40,8 +40,11 @@
 #            from the seen ledger, for the handler of the wake.
 # summary    Print {answers_inbox, answers_seen} JSON for the home summary,
 #            creating the drop folder on demand. answers_seen holds the latest
-#            {file, hold_id, status, reason, at} per file, newest first, at
-#            most 50.
+#            {file, hold_id, status, reason, at, fingerprint} per file, newest
+#            first, at most 50. fingerprint is the answer file's own
+#            question_fingerprint, read from the folder or its handled/ or
+#            rejected/ archive (the newest copy when a name was archived twice),
+#            or null when the file is gone, unreadable, or carries none.
 # source-id  Print the canonical source id, `answer-drop`.
 # retire     Retire the source registration.
 #
@@ -355,8 +358,20 @@ cmd_read() {
   done < <(result_files "$1")
 }
 
+# Print the question_fingerprint of the newest copy of a drop file, or nothing.
+answer_fingerprint() {  # <file>
+  local newest='' f
+  for f in "$INBOX/$1" "$INBOX/$1".* "$INBOX/handled/$1" "$INBOX/handled/$1".* \
+           "$INBOX/rejected/$1" "$INBOX/rejected/$1".*; do
+    [ -f "$f" ] && [ ! -L "$f" ] || continue
+    if [ -z "$newest" ] || [ "$f" -nt "$newest" ]; then newest=$f; fi
+  done
+  [ -n "$newest" ] || return 0
+  jq -r 'select(type == "object") | .question_fingerprint | select(type == "string")' "$newest" 2>/dev/null | head -n 1
+}
+
 cmd_summary() {
-  local abs seen='[]'
+  local abs seen='[]' name fp fps='{}'
   ensure_inbox || die "cannot create the drop folder: $INBOX"
   abs=$(cd "$INBOX" && pwd -P) || die "cannot resolve the drop folder: $INBOX"
   if [ -f "$SEEN" ]; then
@@ -365,6 +380,11 @@ cmd_summary() {
         ({seen:{},out:[]};
          if .seen[$r.file] then . else .seen[$r.file] = true | .out += [$r | {file,hold_id,status,reason,at}] end)
       | .out[:$n]' "$SEEN" 2>/dev/null) || seen='[]'
+    while IFS= read -r name; do
+      fp=$(answer_fingerprint "$name")
+      [ -z "$fp" ] || fps=$(jq -c --arg k "$name" --arg v "$fp" '. + {($k):$v}' <<<"$fps")
+    done < <(jq -r '.[].file' <<<"$seen")
+    seen=$(jq -c --argjson fps "$fps" 'map(. + {fingerprint:($fps[.file])})' <<<"$seen") || seen='[]'
   fi
   jq -n --arg inbox "$abs" --argjson seen "$seen" '{answers_inbox:$inbox,answers_seen:$seen}'
 }

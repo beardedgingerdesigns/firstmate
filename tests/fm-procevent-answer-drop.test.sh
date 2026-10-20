@@ -98,6 +98,10 @@ assert_contains "$(body_of q-db)" "Answer as shown to the captain: Postgres" "op
 assert_equals "$(seen q-name-2.json)" "rejected question-changed" "fingerprint mismatch is rejected"
 assert_equals "$(seen q-name-3.json)" "rejected malformed" "invalid JSON is rejected"
 assert_equals "$(seen q-name-4.json)" "rejected unknown-option" "an option the hold lacks is rejected"
+fp_of() { in_home "$ADAPTER" summary | jq -c --arg f "$1" '.answers_seen[] | select(.file == $f) | .fingerprint'; }
+assert_equals "$(fp_of q-db-1.json)" "\"$FP_DB\"" "a resolved entry carries its archived file's fingerprint"
+assert_equals "$(fp_of q-name-2.json)" "\"$FP_DB\"" "a rejected entry carries the stale fingerprint it was asked under"
+assert_equals "$(fp_of q-name-3.json)" "null" "an unreadable answer file has a null fingerprint"
 assert_equals "$(seen q-gone-5.json)" "rejected not-open" "an unknown hold is rejected"
 assert_present "$INBOX/handled/q-db-1.json" "expected q-db-1.json"
 assert_present "$INBOX/rejected/q-name-2.json" "expected q-name-2.json"

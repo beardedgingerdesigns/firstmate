@@ -435,6 +435,7 @@ EOF
     "gerrit brief was told to open a pull request"
   FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-base-forgejo forgejoproj --mode direct-PR --forge forgejo >/dev/null 2>&1 \
     || fail "forgejo brief on a registered base should scaffold"
+  # shellcheck disable=SC2016 # Backticks are literal generated Markdown.
   assert_grep 'open the PR with `tea pr create --base dev`' "$home/data/brief-base-forgejo/brief.md" \
     "forgejo brief did not open the PR on the registered base with tea"
   pass "fm-brief.sh: a registered work branch is the PR base the worker is told"

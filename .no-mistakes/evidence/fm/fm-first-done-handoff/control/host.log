@@ -1,0 +1,2 @@
+1793369555	start	gen=host-69387-1793369554	primary=claude
+1793369603	handled	turn=host-69387-1793369554.1	posture=away	rc=0	reports=1	error=0 cost=0.027688 conversation_cost=0.027688 input=10 cache_read=86662 cache_write=3303 output=579 turns=5	signal: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.kGaCwc/control/state/isf-ticket.status

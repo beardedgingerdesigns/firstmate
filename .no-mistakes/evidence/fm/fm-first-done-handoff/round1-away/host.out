@@ -1,0 +1,4 @@
+watcher: started pid=70046 (beacon fresh)
+watcher: started pid=75566 (beacon fresh) recovery-generation=70046.1793369560.2vQ6xE
+stale: fm-lab-firstdone-31651-18608:w1:p1
+supervision-host: the away session could not take this wake: a queued wake could not be read or resolved to a task record, so its scope is unknown; this wake is yours

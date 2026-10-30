@@ -1,0 +1,11 @@
+09:12:42 host parked, watcher pid 72210
+09:12:44 == isf-attended mode=no-mistakes kind=ship status: done: built the attended ticket and committed it on fm/isf-attended
+09:12:52 crew-state: state: unknown · source: run-step · run inventory unreadable; run ids: , unavailable
+09:13:06 turn:  after 14s; host.rc=0
+09:13:06 inbox isf-attended: 0 record(s)
+09:13:07 == direct-attended mode=direct-PR kind=ship status: done: built the direct ticket and committed it on fm/direct-attended
+09:13:10 crew-state: state: blocked · source: status-log · named head a1ff61b141025f723e3ff07500d9edf724e2d050 is unreachable outside the worker copy
+09:13:10 turn:  after 1s; host.rc=0
+09:13:10 inbox direct-attended: 0 record(s)
+09:13:11 scenarios fired; stopping host
+09:13:11 done rc=0

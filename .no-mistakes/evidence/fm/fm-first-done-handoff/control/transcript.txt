@@ -1,0 +1,8 @@
+09:12:38 host parked, watcher pid 70199
+09:12:40 == isf-ticket mode=no-mistakes kind=ship status: done: built the ISF ticket and committed it on fm/isf
+09:12:47 crew-state: state: done · source: status-log · built the ISF ticket and committed it on fm/isf
+09:13:23 turn: handled	turn=host-69387-1793369554.1	posture=away	rc=0 after 34s; host.rc=
+09:13:23 inbox isf-ticket: 0 record(s)
+{"task":"isf-ticket","verdict":"captain","silent":false,"summary":"The ISF ticket is built and committed on local branch fm/isf-ticket; there is no PR. Landing local-only work needs you, and your away words say to merge nothing, so it is held for your return."}
+09:13:23 scenarios fired; stopping host
+09:13:24 done rc=143

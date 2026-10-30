@@ -1,0 +1,33 @@
+09:12:37 host parked, watcher pid 70046
+09:12:38 == isf-ticket mode=no-mistakes kind=ship status: done: built the ISF ticket and committed it on fm/isf-ticket
+09:12:46 crew-state: state: done · source: status-log · built the ISF ticket and committed it on fm/isf-ticket
+09:13:26 turn: handled	turn=host-69219-1793369554.1	posture=away	rc=0 after 38s; host.rc=
+09:13:26 inbox isf-ticket: 1 record(s)
+schema=fm-task-inbox.v1 at=2026-10-30T14:13:12Z -- Your build is committed: run /no-mistakes now, as your Definition of done says.
+{"task":"isf-ticket","verdict":"routine","silent":false,"summary":"ISF ticket build is committed; moved it on to validation by steering the worker to run /no-mistakes. No PR exists yet."}
+09:13:27 == direct-ship mode=direct-PR kind=ship status: done: built the direct ticket and committed it on fm/direct-ship
+09:13:31 crew-state: state: blocked · source: status-log · named head 1d8bebf13d36a628f429247b757169b1c9754bc2 is unreachable outside the worker copy
+09:13:31 turn: handled	turn=host-69219-1793369554.1	posture=away	rc=0 after 1s; host.rc=0
+09:13:31 inbox direct-ship: 0 record(s)
+09:13:32 == old-ship mode=none kind=ship status: done: built the legacy ticket and committed it on fm/old-ship
+09:13:36 crew-state: state: done · source: status-log · built the legacy ticket and committed it on fm/old-ship
+09:13:36 turn: handled	turn=host-69219-1793369554.1	posture=away	rc=0 after 1s; host.rc=0
+09:13:36 inbox old-ship: 0 record(s)
+09:13:37 == ready-ship mode=no-mistakes kind=ship status: done: PR https://github.com/fm-lab-nonexistent/demo/pull/1 checks green
+09:13:41 crew-state: state: blocked · source: status-log · named head ac6a4eaf8ead1b97ff8ca00d21d8c47e70a7385f is unreachable outside the worker copy
+09:13:41 turn: handled	turn=host-69219-1793369554.1	posture=away	rc=0 after 1s; host.rc=0
+09:13:41 inbox ready-ship: 0 record(s)
+09:13:41 == scout-task mode=none kind=scout status: done: findings written to the report
+09:13:44 crew-state: state: done · source: status-log · findings written to the report
+09:13:44 turn: handled	turn=host-69219-1793369554.1	posture=away	rc=0 after 1s; host.rc=0
+09:13:44 inbox scout-task: 0 record(s)
+09:13:45 == run mode=no-mistakes kind=ship status: done: PR https://gerrit.invalid/c/demo/+/1 published for review
+09:13:46 crew-state: state: done · source: run-step · run passed: PR state unknown (no PR identity) (publication/CI verification skipped)
+09:13:46 turn: handled	turn=host-69219-1793369554.1	posture=away	rc=0 after 1s; host.rc=0
+09:13:46 inbox run: 0 record(s)
+09:13:46 == isf-second mode=no-mistakes kind=ship status: done: built a second ticket and committed it on fm/isf-second
+09:13:49 crew-state: state: done · source: status-log · built a second ticket and committed it on fm/isf-second
+09:13:49 turn: handled	turn=host-69219-1793369554.1	posture=away	rc=0 after 1s; host.rc=0
+09:13:49 inbox isf-second: 0 record(s)
+09:13:49 scenarios fired; stopping host
+09:13:49 done rc=0

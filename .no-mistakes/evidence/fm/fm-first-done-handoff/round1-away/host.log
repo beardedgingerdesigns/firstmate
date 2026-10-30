@@ -1,0 +1,3 @@
+1793369555	start	gen=host-69219-1793369554	primary=claude
+1793369605	handled	turn=host-69219-1793369554.1	posture=away	rc=0	reports=1	error=0 cost=0.08405 conversation_cost=0.08405 input=12 cache_read=94136 cache_write=16953 output=680 turns=6	signal: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.kGaCwc/away/state/isf-ticket.status
+1793369610	to-main	the away session could not take this wake: a queued wake could not be read or resolved to a task record, so its scope is unknown; this wake is yours

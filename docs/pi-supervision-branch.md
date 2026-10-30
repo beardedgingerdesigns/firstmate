@@ -636,6 +636,11 @@ It sets these limits:
 Ordinary cleanup of landed ships and completed scouts needs no authority relocation; [`bin/fm-branch-prompt.sh`](../bin/fm-branch-prompt.sh) owns the branch's cleanup instructions in both postures, including lease acquisition and refusal reporting.
 The generated prompt includes the [scout-completion](../.agents/skills/scout-completion/SKILL.md) and [captain-hold-lifecycle](../.agents/skills/captain-hold-lifecycle/SKILL.md) policies verbatim so their completion gate reaches hosts without automatic skill loading.
 
+### No-mistakes validation handoff
+
+A no-mistakes ship's first `done:` with no PR is the handoff to validation, and it needs no authority relocation either.
+[`bin/fm-branch-prompt.sh`](../bin/fm-branch-prompt.sh) owns the branch's instruction, in both postures, to steer that same worker to run `/no-mistakes` and never record the handoff as ready for review.
+
 ## Verification
 
 ### Portable regressions
@@ -661,6 +666,7 @@ The generated prompt includes the [scout-completion](../.agents/skills/scout-com
 
 - Prompt stability, including the landed-work cleanup instruction and the second-mate relay, signal-span, and stale-liveness rules.
 - The emitted completed-scout cleanup instructions and verbatim completion policies, including incomplete-work boundaries and refusal reporting; these assertions verify prompt delivery, not a model's adherence.
+- The emitted no-mistakes handoff instruction; these assertions verify prompt delivery, not a model's adherence.
 - Store append-only behavior, the captain cursor barrier, processed-marker sequence bounds and absent-marker safety, and captain-only recorded ages.
 - Leases, guards, and non-branch-home invariance.
 - The away relocation: only under a valid live record, never for local-only landing, queued-only branch dispatch rather than orphaned in-flight recovery, the spend cap for both actors and its lock-held recheck, and the attended guarded-action behavior restored by archive or an invalid record.

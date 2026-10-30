@@ -82,7 +82,7 @@ The shared no-mistakes gate lifecycle boundary is summarized in [architecture.md
 | `backends/t3code.sh`     | Experimental T3 Code adapter driving the agent session through `fm-t3-mcp.mjs`       |
 | `backends/tern.sh`       | Experimental tern session-provider adapter                                           |
 | `fm-config-push.sh`      | Push declared inherited local material to live local or remote secondmates and send the placement-specific config reread when changed |
-| `fm-project-mode.sh`     | Resolve a project's registered delivery posture, forge binding, PR-text binding, or ship-branch prefix from `data/projects.md` for fleet sync, home seeding, and the forge and PR-text agreements a ship spawn or scout promotion applies |
+| `fm-project-mode.sh`     | Resolve a project's registered delivery posture, forge binding, PR-text binding, work branch, or ship-branch prefix from `data/projects.md` for fleet sync, home seeding, the forge and PR-text agreements a ship spawn or scout promotion applies, and the base a brief, spawn, or promotion targets |
 | `fm-forge-detect.sh`     | Propose a clone's forge binding from its origin remote for project-add intake, never recording it |
 | [`fm-merge-local.sh`](../bin/fm-merge-local.sh) | Fast-forward a `local-only` project's local default branch to the approved recorded commit |
 | `fm-review-diff.sh`      | Review a crewmate branch or resolved PR head against the authoritative base          |

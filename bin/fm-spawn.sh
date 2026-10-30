@@ -341,11 +341,11 @@
 #   resolves the current remote default branch (or uses --base-branch, described
 #   above), and resets to its tip. A home that creates the default-off
 #   config/spawn-base-primary-checkout flag (docs/configuration.md) instead
-#   resets a local-only ship or a scout without --base-branch to that same
-#   branch in the primary checkout when it strictly contains origin's tip: a
+#   resets a local-only ship or a scout with no named or registered base to that
+#   same branch in the primary checkout when it strictly contains origin's tip: a
 #   local-only project lands work there through bin/fm-merge-local.sh and never
 #   pushes, so origin stays frozen at the last push. A publishing mode
-#   (bin/fm-dod-lib.sh fm_mode_publishes) and a named base branch keep origin's
+#   (bin/fm-dod-lib.sh fm_mode_publishes) and a named or registered base keep origin's
 #   tip, because that work is delivered against origin. Two branches that have
 #   diverged also keep origin's tip, with a note counting both sides. The
 #   primary's commit is read from the local object store, so nothing more is

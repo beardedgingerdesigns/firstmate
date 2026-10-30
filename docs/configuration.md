@@ -1016,13 +1016,13 @@ The flag is a home-local supervision-noise preference and is not inherited by se
 ## Spawn base from the primary checkout (config/spawn-base-primary-checkout)
 
 The optional local, gitignored `config/spawn-base-primary-checkout` presence flag opts this home into a default-off base for fresh task worktrees on projects that land work locally.
-Without it, every fresh ship or scout worktree on a project with an origin remote resets to `origin/<default>`, or to `origin/<base>` for a named base branch.
+Without it, every fresh ship or scout worktree on a project with an origin remote resets to `origin/<default>`, or to `origin/<base>` for a named or registered base branch.
 
 ### Which tasks it changes
 
-With it present, a fresh local-only ship, or a scout spawned without `--base-branch`, starts from the primary checkout's `<default>` when that branch strictly contains origin's tip.
+With it present, a fresh local-only ship, or a scout with neither `--base-branch` nor a registered `base=`, starts from the primary checkout's `<default>` when that branch strictly contains origin's tip.
 A local-only project lands work there through `bin/fm-merge-local.sh` and never pushes, so `origin/<default>` stays at the last push, and a fresh task would otherwise start behind work already landed and load the project's instruction files from that stale tree.
-A no-mistakes or direct-PR ship and any task with a named base branch still start from origin's tip, because that work is delivered against origin.
+A no-mistakes or direct-PR ship and any task with a named or registered base branch still start from origin's tip, because that work is delivered against origin.
 When the primary checkout's `<default>` and origin's have diverged, the spawn prints a note and starts from origin's tip.
 A project without an origin remote is unaffected, and a relaunch never changes the base a task already has.
 

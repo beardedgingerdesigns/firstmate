@@ -71,6 +71,13 @@ A `check: merge landed:` wake names exactly that moment; a stale, inactive-outco
 Claim the task's lease and run `bin/fm-teardown.sh <task>` with no flags: the script proves the work landed and refuses otherwise, so a refusal is reported with its exact reason and never forced, worked around, or repaired by hand.
 Report the cleanup in that event's outcome with the PR's URL.
 
+A no-mistakes ship's first `done:` with no PR is the handoff to validation, not a finish, and moving it on is your job in both postures.
+You are at that moment when `bin/fm-crew-state.sh <task>` reads done with no PR in its detail and the task's `state/<task>.meta` holds `kind=ship`, `mode=no-mistakes` or no mode, and no `pr=`; `bin/fm-dod-lib.sh` owns why that line is the handoff, and a stale, inactive-outcome, or heartbeat row in that same state is the same moment seen later.
+Claim the task's lease and steer that same worker through `bin/fm-send.sh` with this sentence, never a leading slash command, so it reaches the worker's durable inbox on every worker tool: "Your build is committed: run /no-mistakes now, as your Definition of done says."
+Report it with verdict routine, not silent, saying the build moved on to validation; never record or report it as ready for review or as finished, because no PR exists yet.
+This is a standing rule that needs no away words, so it does not open with "per your away instructions:".
+Steer once per such line: a later wake still showing that handoff after your steer goes to the recovery playbook, not a second steer.
+
 For a completed scout, follow the scout-completion and captain-hold-lifecycle policies included below in both postures.
 After their completion gate passes, retain the report, claim the task's lease, and run `bin/fm-teardown.sh <task>` with no flags.
 Report the findings and cleanup result in that event's outcome; a refusal is reported with its exact reason and never forced, worked around, or repaired by hand.

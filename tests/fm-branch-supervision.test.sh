@@ -109,6 +109,23 @@ test_branch_prompt_routes_completed_scouts_through_guarded_cleanup() {
   pass "emitted branch prompt routes completed scouts through existing policies and leased cleanup, preserving unfinished work"
 }
 
+test_branch_prompt_moves_the_no_mistakes_handoff_on_to_validation() {
+  local prompt
+  prompt=$(bash "$ROOT/bin/fm-branch-prompt.sh") || fail "branch prompt generator failed"
+
+  # As above, this checks delivery of the rule, not model adherence.
+  assert_contains "$prompt" \
+    "A no-mistakes ship's first \`done:\` with no PR is the handoff to validation, not a finish, and moving it on is your job in both postures." \
+    "branch prompt has no rule for the no-mistakes first done"
+  assert_contains "$prompt" \
+    "steer that same worker through \`bin/fm-send.sh\` with this sentence, never a leading slash command, so it reaches the worker's durable inbox on every worker tool: \"Your build is committed: run /no-mistakes now, as your Definition of done says.\"" \
+    "branch prompt does not steer the handoff worker to validation"
+  assert_contains "$prompt" \
+    "never record or report it as ready for review or as finished, because no PR exists yet." \
+    "branch prompt lets the handoff read as ready for review"
+  pass "emitted branch prompt moves a no-mistakes first done on to validation and never records it as ready for review"
+}
+
 # --- append-only outcome store ------------------------------------------------
 
 test_outcome_store_is_append_only_with_cursor_reads() {
@@ -1613,6 +1630,7 @@ WRAPPER
 
 test_branch_prompt_is_byte_stable_and_above_cache_floor
 test_branch_prompt_routes_completed_scouts_through_guarded_cleanup
+test_branch_prompt_moves_the_no_mistakes_handoff_on_to_validation
 test_outcome_store_is_append_only_with_cursor_reads
 test_outcome_append_keeps_a_bounded_display_tail
 test_outcome_tail_keeps_whole_newest_rows_within_its_byte_budget

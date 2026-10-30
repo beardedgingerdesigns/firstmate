@@ -412,6 +412,7 @@ test_registered_base_names_the_pr_base() {
 - devproj [no-mistakes base=dev] - fixture (added 2026-09-24)
 - plainproj [direct-PR] - fixture (added 2026-09-24)
 - gerritproj [direct-PR forge=gerrit base=dev] - fixture (added 2026-09-25)
+- forgejoproj [direct-PR forge=forgejo base=dev] - fixture (added 2026-10-30)
 EOF
   FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-base-nm devproj --mode no-mistakes >/dev/null 2>&1 \
     || fail "no-mistakes brief on a registered base should scaffold"
@@ -432,6 +433,10 @@ EOF
     "gerrit brief did not name the registered work branch as the change target"
   assert_no_grep 'pr create --base' "$home/data/brief-base-gerrit/brief.md" \
     "gerrit brief was told to open a pull request"
+  FM_HOME="$home" "$ROOT/bin/fm-brief.sh" brief-base-forgejo forgejoproj --mode direct-PR --forge forgejo >/dev/null 2>&1 \
+    || fail "forgejo brief on a registered base should scaffold"
+  assert_grep 'open the PR with `tea pr create --base dev`' "$home/data/brief-base-forgejo/brief.md" \
+    "forgejo brief did not open the PR on the registered base with tea"
   pass "fm-brief.sh: a registered work branch is the PR base the worker is told"
 }
 

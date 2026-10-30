@@ -711,6 +711,7 @@ EOF
   case "$mode:$forge" in
     direct-PR:gerrit) echo "Target branch: $name, this project's work branch, not the server's default branch - publish with $(fm_md_code "gerrit-axi publish --squash --json --branch $q")." ;;
     no-mistakes:gerrit) echo "Target branch: $name, this project's work branch, not the server's default branch - start the run with $(fm_md_code "no-mistakes axi run --base-branch $q") and publish with $(fm_md_code "gerrit-axi publish --squash --json --branch $q")." ;;
+    direct-PR:forgejo) echo "PR base: $name, this project's work branch, not the forge's default branch - open the PR with $(fm_md_code "$forge_cli pr create --base $q")." ;;
     direct-PR:*) echo "PR base: $name, this project's work branch, not the forge's default branch - open the PR with $(fm_md_code "gh-axi pr create --base $q") ($(fm_md_code "gh pr create --base $q"))." ;;
     no-mistakes:*)
       if [ "$pr" = manual ]; then

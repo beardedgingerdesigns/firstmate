@@ -72,7 +72,7 @@ Claim the task's lease and run `bin/fm-teardown.sh <task>` with no flags: the sc
 Report the cleanup in that event's outcome with the PR's URL.
 
 A no-mistakes ship's first `done:` with no PR is the handoff to validation, not a finish, and moving it on is your job in both postures.
-You are at that moment when `bin/fm-crew-state.sh <task>` reads `state: done` with `source: status-log` and no PR in its detail, never `source: run-step`, which means a run already exists for this head, and the task's `state/<task>.meta` holds `kind=ship`, `mode=no-mistakes` or no mode, and no `pr=`; `bin/fm-dod-lib.sh` owns why that line is the handoff, and a stale, inactive-outcome, or heartbeat row in that same state is the same moment seen later.
+You are at that moment when `bin/fm-crew-state.sh <task>` reads `state: done` with `source: status-log` and no PR in its detail, never `source: run-step`, which means a run already exists for this head, and the task's `state/<task>.meta` holds `kind=ship`, `mode=no-mistakes`, and no `pr=`; `bin/fm-dod-lib.sh` owns why that line is the handoff, and a stale, inactive-outcome, or heartbeat row in that same state is the same moment seen later.
 Claim the task's lease and steer that same worker through `bin/fm-send.sh` with this sentence, never a leading slash command, so it reaches the worker's durable inbox on every worker tool: "Your build is committed: run /no-mistakes now, as your Definition of done says."
 Report it with verdict routine, not silent, saying the build moved on to validation; never record or report it as ready for review or as finished, because no PR exists yet.
 This is a standing rule that needs no away words, so it does not open with "per your away instructions:".

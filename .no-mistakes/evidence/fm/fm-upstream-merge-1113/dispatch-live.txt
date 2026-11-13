@@ -1,0 +1,28 @@
+### $ TYPESAFE_BASE=http://127.0.0.1:<port> bin/fm-dispatch-resolve.sh $LAB/data/pager-fix/brief.md --project pager
+dispatch-resolve:
+  status: clear
+  model: jev-1.13.0   latency_ms: 27   tokens: 100/10
+  rule: rule_1 (A simple bug fix with a stated root cause.)   confidence: 0.93
+  probabilities: rule_1=0.93 default=0.07
+  note: rule matched
+  candidate: claude:sonnet  provider=claude  -> eligible (quota ranking off: home declares a single shared quota)
+  profile: --harness 'claude' --model 'sonnet' --effort 'high'
+exit=0
+### request model sent to TypeSafe:
+jev-1.13.0
+### state/dispatch-resolve.log (our decision log):
+{"ts":1794582284,"event":"resolve","task":"pager-fix","project":"pager","status":"clear","picked":"rule_1","rule":"rule_1","confidence":0.93,"model":"jev-1.13.0","profile":{"harness":"claude","model":"sonnet","effort":"high"},"reason":null}
+### data/pager-fix/dispatch-resolution.json (upstream per-task record):
+{"task":"pager-fix","status":"clear","profile":{"harness":"claude","model":"sonnet","effort":"high"}}
+
+### $ fm-spawn.sh pager-fix projects/pager --mode local-only --yolo off --harness codex   (differs from clear profile, no override)
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.y3ki8y
+error: launch flags do not match the clear dispatch selection --harness claude --model sonnet --effort high recorded in /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.y3ki8y/data/pager-fix/dispatch-resolution.json; pass those flags with no raw launch command, or record this task's override with --dispatch-override <reason>
+exit=1
+### $ same with --dispatch-override 'lab: captain asked for codex'
+fm-gate-refuse: gate agent lifecycle permitted only against lab home /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.y3ki8y
+error: could not resolve the shared Treehouse project lock for /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.y3ki8y/projects/pager
+exit=1
+### $ invalid TYPESAFE_BASE is refused (exit 2)
+error: TYPESAFE_BASE must be an http(s) URL with a host and no userinfo, query, fragment, whitespace, or brackets in its path
+exit=2

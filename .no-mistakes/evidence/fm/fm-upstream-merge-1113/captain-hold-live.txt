@@ -1,0 +1,102 @@
+
+### $ fm-captain-hold.sh hold ship-call --title 'Ship the pager fix?' --reason 'captain decides release' --repo pager --option ship='Ship it now' --option wait='Wait for QA'
+ship-call
+exit=0
+
+### $ cat data/captain-hold-options/ship-call.json
+{
+  "schema": "fm-captain-hold-options.v1",
+  "hold_set": "2026-11-13T15:06:14Z",
+  "options": [
+    {
+      "key": "ship",
+      "label": "Ship it now"
+    },
+    {
+      "key": "wait",
+      "label": "Wait for QA"
+    }
+  ]
+}
+
+
+### $ fm-captain-hold.sh hold bad-opt --title x --reason y --option reconcile=Nope   (reserved key must be refused)
+fm-captain-hold: option key reconcile is reserved by the keyed-answer intake
+exit=1
+
+### $ fm-home-summary-refresh.sh ; jq '.decisions_open, .answers_inbox' state/home-summary.json
+exit=0
+{
+  "decisions_open": [
+    {
+      "id": "ship-call",
+      "question": "captain decides release",
+      "options": [
+        {
+          "key": "ship",
+          "label": "Ship it now"
+        },
+        {
+          "key": "wait",
+          "label": "Wait for QA"
+        }
+      ],
+      "question_fingerprint": "6af0b0fa3d1d6ff538041e32222beaf88373bff019266b6b6b3c480ac394f4f5",
+      "source": "backlog"
+    }
+  ],
+  "answers_inbox": "/private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.hd5OCY/state/answer-drop"
+}
+
+### $ fm-deck drops {hold_id:ship-call, answer:{option:ship}} into answers_inbox; adapter poll + autohandle
+armed: answer-drop
+arm exit=0
+poll exit=0
+answer-drop: /private/var/folders/k2/9s6_2k2x4zj1x4yb6yhm34cm0000gn/T/fm-lab.hd5OCY/state/answer-drop
+file: ship-call-1794582380000.json
+error: cannot durably record handling: answer-drop 1
+autohandle exit=1
+
+### $ fm-procevent-answer-drop.sh summary | jq .answers_seen
+[{"file":"ship-call-1794582380000.json","hold_id":"ship-call","status":"resolved","reason":null,"at":"2026-11-13T15:06:26Z","fingerprint":"6af0b0fa3d1d6ff538041e32222beaf88373bff019266b6b6b3c480ac394f4f5"}]
+
+### $ tasks-axi show ship-call (expect closed with captain answer)
+task:
+  id: ship-call
+  title: Ship the pager fix?
+  state: done
+  blocked: no
+  blocked_by: none
+  held: no
+  hold_reason: "fm-hold-v1:Y2FwdGFpbiBkZWNpZGVzIHJlbGVhc2U="
+  hold_kind: captain
+  hold_until: "-"
+  kind: captain
+  repo: pager
+  priority: "-"
+  created: "-"
+  closed: 2026-11-13
+  deps: none
+  links: none
+  body: "Resolution recorded by fm-captain-hold.\nDecision digest: cefade3d23aecad3253a15fbd0823dd731de4878f24145a9b35a804de43b8a2a\nResolution mode: answered\n\nCaptain decision:\nCaptain answered this call through fm-deck.\nTask: ship-call\nAnswer: ship\nAnswer as shown to the captain: Ship it now"
+
+### $ reconcile supersede: hold old-call, new-call; supersede old-call --by new-call
+superseded: old-call
+exit=0
+open old-call exit=1 (nonzero = no longer open)
+open new-call exit=0 (0 = still open)
+
+### $ supersede itself is refused
+fm-captain-hold: task new-call cannot supersede itself
+exit=1
+
+### $ away mode: hold work-item, write state/.afk (away), answer --release must be refused
+hold exit=0
+fm-captain-hold: task work-item stays held: the away-posture record exists, and a captain hold is released only by the captain in an attended session; retry --release after the return archives the record
+exit=1
+open work-item exit=0 (0 = still held)
+
+### $ back attended: answer --release now succeeds
+released: work-item
+exit=0
+open work-item exit=1 (nonzero = hold released)
